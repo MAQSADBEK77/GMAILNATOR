@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gmailnator</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px;
+    }
+
+    .card {
+      background: #1a1d27;
+      border: 1px solid #2d3148;
+      border-radius: 16px;
+      padding: 28px;
+      width: 100%;
+      max-width: 700px;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    h1 span.badge {
+      background: #ea4335;
+      color: #fff;
+      font-size: 0.65rem;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .subtitle {
+      color: #64748b;
+      font-size: 0.85rem;
+      margin-bottom: 22px;
+    }
+
+    label {
+      font-size: 0.8rem;
+      color: #94a3b8;
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+
+    input[type="text"], input[type="password"] {
+      width: 100%;
+      background: #0f1117;
+      border: 1px solid #2d3148;
+      border-radius: 10px;
+      padding: 11px 14px;
+      color: #e2e8f0;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus { border-color: #4f8ef7; }
+
+    .key-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .key-row input { flex: 1; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 11px 20px;
+      border-radius: 10px;
+      border: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.18s;
+      white-space: nowrap;
+    }
+
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #4f8ef7, #7c3aed);
+      color: #fff;
+      width: 100%;
+      padding: 14px;
+      font-size: 1rem;
+      border-radius: 12px;
+    }
+
+    .btn-primary:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-1px); }
+
+    .btn-sm {
+      background: #2d3148;
+      color: #94a3b8;
+      padding: 8px 14px;
+      font-size: 0.8rem;
+      border-radius: 8px;
+    }
+
+    .btn-sm:hover:not(:disabled) { background: #3a3f60; color: #e2e8f0; }
+
+    .btn-danger-sm {
+      background: #3b1515;
+      color: #f87171;
+      padding: 8px 14px;
+      font-size: 0.8rem;
+      border-radius: 8px;
+    }
+
+    .btn-danger-sm:hover:not(:disabled) { background: #4f1a1a; }
+
+    .email-display {
+      display: none;
+      background: #0f1117;
+      border: 1px solid #2d3148;
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-top: 18px;
+    }
+
+    .email-display.visible { display: block; }
+
+    .email-label {
+      font-size: 0.75rem;
+      color: #64748b;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+
+    .email-value {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .email-text {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #4f8ef7;
+      word-break: break-all;
+    }
+
+    .type-tag {
+      font-size: 0.7rem;
+      background: #1e2a40;
+      color: #60a5fa;
+      padding: 3px 10px;
+      border-radius: 20px;
+      margin-top: 6px;
+      display: inline-block;
+      border: 1px solid #2d4a70;
+    }
+
+    .inbox-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .inbox-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .msg-count {
+      background: #4f8ef7;
+      color: #fff;
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-weight: 700;
+    }
+
+    .auto-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.8rem;
+      color: #64748b;
+    }
+
+    .toggle {
+      position: relative;
+      width: 38px;
+      height: 20px;
+    }
+
+    .toggle input { display: none; }
+
+    .toggle-slider {
+      position: absolute;
+      inset: 0;
+      background: #2d3148;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .toggle-slider::before {
+      content: '';
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      background: #64748b;
+      border-radius: 50%;
+      top: 3px;
+      left: 3px;
+      transition: 0.2s;
+    }
+
+    .toggle input:checked + .toggle-slider { background: #1e3a5f; }
+    .toggle input:checked + .toggle-slider::before { background: #4f8ef7; transform: translateX(18px); }
+
+    .messages-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .message-item {
+      background: #0f1117;
+      border: 1px solid #2d3148;
+      border-radius: 10px;
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: all 0.15s;
+      position: relative;
+    }
+
+    .message-item:hover { border-color: #4f8ef7; background: #12151f; }
+
+    .msg-from {
+      font-size: 0.8rem;
+      color: #60a5fa;
+      font-weight: 600;
+      margin-bottom: 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .msg-subject {
+      font-size: 0.9rem;
+      color: #e2e8f0;
+      font-weight: 500;
+      margin-bottom: 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .msg-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .msg-time {
+      font-size: 0.75rem;
+      color: #475569;
+    }
+
+    .msg-actions { display: flex; gap: 6px; }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #475569;
+    }
+
+    .empty-state .icon { font-size: 2.5rem; margin-bottom: 10px; }
+    .empty-state p { font-size: 0.85rem; }
+
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 12px 18px;
+      font-size: 0.85rem;
+      color: #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 1000;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      transform: translateY(80px);
+      opacity: 0;
+      transition: all 0.3s;
+    }
+
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.success { border-color: #22c55e; }
+    .toast.error { border-color: #ef4444; }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      z-index: 100;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 24px 16px;
+      overflow-y: auto;
+    }
+
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: #1a1d27;
+      border: 1px solid #2d3148;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 680px;
+      padding: 24px;
+      margin: auto;
+    }
+
+    .modal-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      gap: 12px;
+    }
+
+    .modal-subject {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.4;
+    }
+
+    .modal-from {
+      font-size: 0.8rem;
+      color: #60a5fa;
+      margin-top: 4px;
+    }
+
+    .modal-time {
+      font-size: 0.75rem;
+      color: #475569;
+      white-space: nowrap;
+    }
+
+    .btn-close {
+      background: #2d3148;
+      border: none;
+      color: #94a3b8;
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+
+    .btn-close:hover { background: #3a3f60; color: #fff; }
+
+    .modal-body {
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+      min-height: 200px;
+    }
+
+    .modal-body iframe {
+      width: 100%;
+      min-height: 400px;
+      border: none;
+      display: block;
+    }
+
+    .loading-overlay {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      color: #64748b;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .loading-overlay.show { display: flex; }
+
+    .timer-text {
+      font-size: 0.75rem;
+      color: #475569;
+    }
+
+    .sep { height: 1px; background: #2d3148; margin: 18px 0; }
+
+    .action-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h1>
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+      <rect width="24" height="24" rx="6" fill="#ea4335"/>
+      <path d="M4 8l8 5 8-5" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+      <rect x="3" y="7" width="18" height="12" rx="2" stroke="#fff" stroke-width="1.6" fill="none"/>
+    </svg>
+    Gmailnator
+    <span class="badge">TEMP</span>
+  </h1>
+  <p class="subtitle">Vaqtinchalik @gmail.com manzili yarating va xabarlarni kuzating</p>
+
+  <label>RapidAPI Kalit</label>
+  <div class="key-row">
+    <input type="password" id="apiKey" placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" />
+    <button class="btn btn-sm" onclick="saveKey()">Saqlash</button>
+  </div>
+
+  <div class="sep"></div>
+
+  <button class="btn btn-primary" id="generateBtn" onclick="generateEmail()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+      <path d="M12 5v14M5 12h14" stroke-linecap="round"/>
+    </svg>
+    Yangi Gmail Manzil Olish
+  </button>
+
+  <div class="email-display" id="emailDisplay">
+    <div class="email-label">Vaqtinchalik manzil</div>
+    <div class="email-value">
+      <span class="email-text" id="emailText"></span>
+      <button class="btn btn-sm" onclick="copyEmail()">Nusxa</button>
+    </div>
+    <span class="type-tag" id="emailType"></span>
+  </div>
+</div>
+
+<div class="card" id="inboxCard" style="display:none;">
+  <div class="inbox-header">
+    <div class="inbox-title">
+      Kiruvchi xabarlar
+      <span class="msg-count" id="msgCount">0</span>
+    </div>
+    <div class="action-row">
+      <div class="auto-row">
+        <label class="toggle" title="Avtomatik yangilash (10 sek)">
+          <input type="checkbox" id="autoRefresh" onchange="toggleAuto()" />
+          <span class="toggle-slider"></span>
+        </label>
+        <span>Avto</span>
+        <span class="timer-text" id="timerText"></span>
+      </div>
+      <button class="btn btn-sm" id="refreshBtn" onclick="loadInbox()">
+        ↻ Yangilash
+      </button>
+    </div>
+  </div>
+
+  <div id="loadingIndicator" class="loading-overlay">
+    <div class="spinner" style="width:24px;height:24px;border-width:3px;"></div>
+    <span style="font-size:0.85rem;color:#64748b;">Yuklanmoqda...</span>
+  </div>
+
+  <div class="messages-list" id="messagesList"></div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <div class="modal-subject" id="modalSubject"></div>
+        <div class="modal-from" id="modalFrom"></div>
+        <div class="modal-time" id="modalTime"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0;">
+        <button class="btn-close" onclick="closeModal()">✕</button>
+        <button class="btn btn-danger-sm" id="deleteBtn" onclick="deleteMessage()">Ochirish</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div id="modalLoading" class="loading-overlay show">
+        <div class="spinner" style="width:24px;height:24px;border-width:3px;border-color:rgba(0,0,0,0.15);border-top-color:#4f8ef7;"></div>
+        <span style="font-size:0.85rem;color:#64748b;">Xabar yuklanmoqda...</span>
+      </div>
+      <iframe id="modalFrame" style="display:none;"></iframe>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const BASE = 'https://gmailnator.p.rapidapi.com/api';
+  const HOST = 'gmailnator.p.rapidapi.com';
+  const GMAIL_TYPES = ['public_gmail_plus', 'public_gmail_dot', 'private_gmail_plus', 'private_gmail_dot'];
+
+  let currentEmail = '';
+  let currentMsgId = '';
+  let autoTimer = null;
+  let countdown = 0;
+  let countdownTimer = null;
+
+  // Load saved key
+  window.onload = () => {
+    const saved = localStorage.getItem('gn_api_key');
+    if (saved) document.getElementById('apiKey').value = saved;
+  };
+
+  function getKey() {
+    return document.getElementById('apiKey').value.trim();
+  }
+
+  function saveKey() {
+    const k = getKey();
+    if (!k) { showToast('API kalit kiriting!', 'error'); return; }
+    localStorage.setItem('gn_api_key', k);
+    showToast('Kalit saqlandi', 'success');
+  }
+
+  function headers() {
+    return {
+      'Content-Type': 'application/json',
+      'x-rapidapi-host': HOST,
+      'x-rapidapi-key': getKey(),
+    };
+  }
+
+  async function generateEmail() {
+    const key = getKey();
+    if (!key) { showToast('Avval API kalit kiriting!', 'error'); return; }
+
+    const btn = document.getElementById('generateBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Yaratilmoqda...';
+
+    try {
+      const res = await fetch(`${BASE}/emails/generate`, {
+        method: 'POST',
+        headers: headers(),
+        body: JSON.stringify({ type: GMAIL_TYPES }),
+      });
+      const data = await res.json();
+
+      if (!res.ok || data.status !== 'success') {
+        throw new Error(data.message || 'Xatolik yuz berdi');
+      }
+
+      currentEmail = data.email;
+      document.getElementById('emailText').textContent = currentEmail;
+      document.getElementById('emailType').textContent = typeLabel(data.type);
+      document.getElementById('emailDisplay').classList.add('visible');
+      document.getElementById('inboxCard').style.display = 'block';
+
+      showToast('Gmail manzil yaratildi!', 'success');
+
+      // Stop old auto-refresh and start fresh
+      stopAuto();
+      document.getElementById('autoRefresh').checked = false;
+      await loadInbox();
+
+    } catch (e) {
+      showToast(e.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <path d="M12 5v14M5 12h14" stroke-linecap="round"/>
+        </svg>
+        Yangi Gmail Manzil Olish`;
+    }
+  }
+
+  async function loadInbox() {
+    if (!currentEmail) return;
+
+    const loading = document.getElementById('loadingIndicator');
+    const list = document.getElementById('messagesList');
+    const btn = document.getElementById('refreshBtn');
+
+    loading.classList.add('show');
+    list.innerHTML = '';
+    btn.disabled = true;
+
+    try {
+      const res = await fetch(`${BASE}/inbox/`, {
+        method: 'POST',
+        headers: headers(),
+        body: JSON.stringify({ email: currentEmail, limit: 20 }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.message || 'Inbox yuklanmadi');
+
+      const msgs = data.messages || [];
+      document.getElementById('msgCount').textContent = msgs.length;
+
+      if (msgs.length === 0) {
+        list.innerHTML = `
+          <div class="empty-state">
+            <div class="icon">📭</div>
+            <p>Hozircha xabar yo'q</p>
+            <p style="margin-top:6px;font-size:0.75rem;">Xabar kelganda avtomatik yangilanadi</p>
+          </div>`;
+      } else {
+        msgs.forEach(msg => {
+          const el = document.createElement('div');
+          el.className = 'message-item';
+          el.innerHTML = `
+            <div class="msg-from">${escHtml(msg.from)}</div>
+            <div class="msg-subject">${escHtml(msg.subject)}</div>
+            <div class="msg-meta">
+              <span class="msg-time">${escHtml(msg.time_ago)}</span>
+              <div class="msg-actions">
+                <button class="btn btn-danger-sm" onclick="event.stopPropagation(); confirmDelete('${escAttr(msg.id)}')" title="O'chirish">✕</button>
+              </div>
+            </div>`;
+          el.onclick = () => openMessage(msg);
+          list.appendChild(el);
+        });
+      }
+    } catch (e) {
+      list.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>${escHtml(e.message)}</p></div>`;
+    } finally {
+      loading.classList.remove('show');
+      btn.disabled = false;
+    }
+  }
+
+  async function openMessage(msg) {
+    currentMsgId = msg.id;
+    document.getElementById('modalSubject').textContent = msg.subject;
+    document.getElementById('modalFrom').textContent = 'Kim: ' + msg.from;
+    document.getElementById('modalTime').textContent = msg.time_ago;
+    document.getElementById('modalFrame').style.display = 'none';
+    document.getElementById('modalLoading').classList.add('show');
+    document.getElementById('modalOverlay').classList.add('open');
+
+    try {
+      const res = await fetch(`${BASE}/inbox/${encodeURIComponent(msg.id)}`, {
+        headers: { 'x-rapidapi-host': HOST, 'x-rapidapi-key': getKey() },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Yuklanmadi');
+
+      const frame = document.getElementById('modalFrame');
+      frame.style.display = 'block';
+      frame.srcdoc = data.content || '<p style="padding:20px;color:#555;">Kontent mavjud emas</p>';
+    } catch (e) {
+      document.getElementById('modalFrame').srcdoc = `<p style="padding:20px;color:#ef4444;">${e.message}</p>`;
+      document.getElementById('modalFrame').style.display = 'block';
+    } finally {
+      document.getElementById('modalLoading').classList.remove('show');
+    }
+  }
+
+  async function deleteMessage() {
+    if (!currentMsgId) return;
+    const btn = document.getElementById('deleteBtn');
+    btn.disabled = true;
+    btn.textContent = '...';
+
+    try {
+      const res = await fetch(`${BASE}/inbox/${encodeURIComponent(currentMsgId)}`, {
+        method: 'DELETE',
+        headers: { 'x-rapidapi-host': HOST, 'x-rapidapi-key': getKey() },
+      });
+      const data = await res.json();
+      if (!res.ok && !data.success) throw new Error(data.error || data.message || 'Xatolik');
+      showToast("Xabar o'chirildi", 'success');
+      closeModal();
+      await loadInbox();
+    } catch (e) {
+      showToast(e.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Ochirish";
+    }
+  }
+
+  async function confirmDelete(msgId) {
+    if (!confirm("Bu xabarni o'chirishni tasdiqlaysizmi?")) return;
+    try {
+      const res = await fetch(`${BASE}/inbox/${encodeURIComponent(msgId)}`, {
+        method: 'DELETE',
+        headers: { 'x-rapidapi-host': HOST, 'x-rapidapi-key': getKey() },
+      });
+      const data = await res.json();
+      if (!res.ok && !data.success) throw new Error(data.error || data.message);
+      showToast("O'chirildi", 'success');
+      await loadInbox();
+    } catch (e) {
+      showToast(e.message, 'error');
+    }
+  }
+
+  function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('open');
+    document.getElementById('modalFrame').srcdoc = '';
+    currentMsgId = '';
+  }
+
+  function copyEmail() {
+    if (!currentEmail) return;
+    navigator.clipboard.writeText(currentEmail)
+      .then(() => showToast('Nusxa olindi!', 'success'))
+      .catch(() => showToast('Nusxa olishda xatolik', 'error'));
+  }
+
+  function toggleAuto() {
+    if (document.getElementById('autoRefresh').checked) {
+      startAuto();
+    } else {
+      stopAuto();
+    }
+  }
+
+  function startAuto() {
+    stopAuto();
+    countdown = 10;
+    updateTimerText();
+    countdownTimer = setInterval(() => {
+      countdown--;
+      updateTimerText();
+      if (countdown <= 0) {
+        countdown = 10;
+        loadInbox();
+      }
+    }, 1000);
+  }
+
+  function stopAuto() {
+    if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+    document.getElementById('timerText').textContent = '';
+  }
+
+  function updateTimerText() {
+    document.getElementById('timerText').textContent = countdown > 0 ? `${countdown}s` : '';
+  }
+
+  function typeLabel(t) {
+    const map = {
+      public_gmail_plus: '+ Plus adreslash',
+      public_gmail_dot: '. Nuqta triki',
+      private_gmail_plus: '+ Private plus',
+      private_gmail_dot: '. Private nuqta',
+    };
+    return map[t] || t;
+  }
+
+  function escHtml(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function escAttr(s) {
+    return String(s || '').replace(/'/g, "\\'");
+  }
+
+  function showToast(msg, type = '') {
+    const t = document.getElementById('toast');
+    t.textContent = type === 'success' ? '✓ ' + msg : type === 'error' ? '✗ ' + msg : msg;
+    t.className = 'toast show ' + type;
+    setTimeout(() => { t.className = 'toast'; }, 3000);
+  }
+
+  // Close modal on overlay click
+  document.getElementById('modalOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+</script>
+</body>
+</html>
