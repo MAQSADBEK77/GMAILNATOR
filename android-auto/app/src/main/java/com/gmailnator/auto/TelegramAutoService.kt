@@ -68,7 +68,7 @@ class TelegramAutoService : AccessibilityService() {
         return allNodes(root).firstOrNull { node ->
             node.isEditable && node.isEnabled &&
             listOf("email", "e-mail", "pochta", "mail").any { kw ->
-                node.hint?.toString()?.lowercase()?.contains(kw) == true ||
+                node.hintText?.toString()?.lowercase()?.contains(kw) == true ||
                 node.text?.toString()?.lowercase()?.contains(kw) == true ||
                 node.contentDescription?.toString()?.lowercase()?.contains(kw) == true
             }
@@ -79,7 +79,7 @@ class TelegramAutoService : AccessibilityService() {
     private fun findCodeField(root: AccessibilityNodeInfo): AccessibilityNodeInfo? {
         return allNodes(root).firstOrNull { node ->
             node.isEditable && node.isEnabled &&
-            (node.hint?.toString()?.let { h ->
+            (node.hintText?.toString()?.let { h ->
                 listOf("code", "kod", "otp", "verif", "number", "raqam").any { h.lowercase().contains(it) }
             } == true ||
             node.inputType and android.text.InputType.TYPE_CLASS_NUMBER != 0)
