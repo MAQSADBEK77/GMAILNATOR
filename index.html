@@ -8,235 +8,138 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="theme-color" content="#0d0d14"/>
   <link rel="manifest" href="manifest.json"/>
-  <title>Tempmail</title>
+  <title>Gmailnator</title>
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-
     :root{
-      --bg:#0d0d14;
-      --card:#15182a;
-      --border:#222442;
-      --blue:#5c7cfa;
-      --green:#2f9e44;
-      --gl:#51cf66;
-      --red:#fa5252;
-      --text:#e9ecef;
-      --muted:#5c6380;
-      --r:14px;
+      --bg:#0d0d14;--card:#15182a;--border:#222442;
+      --blue:#5c7cfa;--green:#2f9e44;--gl:#51cf66;
+      --red:#fa5252;--text:#e9ecef;--muted:#5c6380;--r:14px;
     }
-
     html,body{
-      height:100%;
-      background:var(--bg);
-      color:var(--text);
+      height:100%;background:var(--bg);color:var(--text);
       font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
       -webkit-tap-highlight-color:transparent;
-      overscroll-behavior:none;
-      touch-action:manipulation;
+      overscroll-behavior:none;touch-action:manipulation;
     }
-
     body{
-      display:flex;
-      flex-direction:column;
-      padding:env(safe-area-inset-top,12px) 12px env(safe-area-inset-bottom,12px);
-      gap:10px;
-      min-height:100%;
+      display:flex;flex-direction:column;
+      padding:env(safe-area-inset-top,14px) 12px env(safe-area-inset-bottom,14px);
+      gap:10px;min-height:100%;
     }
 
-    /* ── Info row ─────────────────────────── */
-    .info-row{
-      display:flex;
-      gap:10px;
+    /* ── Setup screen ─────────────────────────── */
+    #setupScreen{
+      flex:1;display:flex;flex-direction:column;
+      align-items:center;justify-content:center;gap:16px;padding:20px;
     }
-
-    .info-box{
-      flex:1;
-      background:var(--card);
-      border:1.5px solid var(--border);
-      border-radius:var(--r);
-      padding:10px 14px;
-      cursor:pointer;
-      transition:border-color .15s;
-      -webkit-user-select:none;
-      user-select:none;
-      position:relative;
-      overflow:hidden;
-      min-height:62px;
-      display:flex;
-      flex-direction:column;
-      justify-content:center;
+    .setup-logo{font-size:3rem;margin-bottom:4px}
+    .setup-title{font-size:1.3rem;font-weight:800;color:var(--text)}
+    .setup-sub{font-size:.82rem;color:var(--muted);text-align:center;line-height:1.5}
+    .setup-input{
+      width:100%;background:var(--card);border:1.5px solid var(--border);
+      border-radius:var(--r);padding:14px;color:var(--text);
+      font-size:.85rem;font-family:monospace;outline:none;
     }
-
-    .info-box.email-box{flex:1.4}
-    .info-box.active{border-color:var(--blue)}
-    .info-box.code-box.active{border-color:var(--gl)}
-    .info-box:active{opacity:.8}
-
-    .info-label{
-      font-size:.6rem;
-      font-weight:700;
-      text-transform:uppercase;
-      letter-spacing:.8px;
-      color:var(--muted);
-      margin-bottom:4px;
+    .setup-input:focus{border-color:var(--blue)}
+    .setup-btn{
+      width:100%;background:linear-gradient(135deg,#3b5bdb,#7048e8);
+      color:#fff;border:none;border-radius:var(--r);
+      padding:16px;font-size:1rem;font-weight:800;cursor:pointer;
     }
+    .setup-note{font-size:.72rem;color:var(--muted);text-align:center}
 
-    .info-val{
-      font-size:.82rem;
-      font-weight:700;
-      color:var(--blue);
-      word-break:break-all;
-      line-height:1.2;
+    /* ── Main screen ──────────────────────────── */
+    #mainScreen{display:none;flex-direction:column;gap:10px;flex:1}
+
+    /* ── Header ───────────────────────────────── */
+    .hdr{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:2px 0;
     }
-
-    .code-box .info-val{
-      font-size:1.8rem;
-      letter-spacing:6px;
-      color:var(--gl);
-      text-align:center;
+    .logo{font-size:1.1rem;font-weight:800}
+    .logo span{color:#ea4335}
+    .hdr-right{display:flex;align-items:center;gap:10px}
+    .btn-gear{
+      background:none;border:none;color:var(--muted);
+      font-size:1.1rem;cursor:pointer;padding:4px;
     }
-
-    .info-muted{
-      font-size:.72rem;
-      color:var(--muted);
-    }
-
-    /* copy flash */
-    .info-box::after{
-      content:'✓ Nusxalandi';
-      position:absolute;
-      inset:0;
-      background:rgba(47,158,68,.9);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:.9rem;
-      font-weight:800;
-      color:#fff;
-      opacity:0;
-      transition:opacity .15s;
-      border-radius:calc(var(--r) - 1px);
-    }
-
-    .info-box.flash::after{opacity:1}
-
-    /* ── Status ───────────────────────────── */
-    .status{
-      padding:8px 14px;
-      border-radius:10px;
-      font-size:.78rem;
-      font-weight:500;
-      text-align:center;
-      background:var(--card);
-      border:1px solid var(--border);
-      color:var(--muted);
-      transition:all .2s;
-      min-height:36px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      gap:6px;
-    }
-
-    .status.ok {border-color:var(--green);color:var(--gl);background:#0a1f0d}
-    .status.err{border-color:var(--red);color:#ff8787;background:#1f0a0a}
-    .status.info{border-color:var(--blue);color:#91a7ff;background:#0a0e2a}
-
-    /* ── Buttons ──────────────────────────── */
-    .btns{
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-      flex:1;
-    }
-
-    .btn{
-      flex:1;
-      border:none;
-      border-radius:var(--r);
-      font-weight:800;
-      font-size:1rem;
-      cursor:pointer;
-      -webkit-tap-highlight-color:transparent;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      gap:10px;
-      transition:transform .1s,filter .1s;
-      min-height:64px;
-      letter-spacing:.2px;
-    }
-
-    .btn:active{transform:scale(.96)}
-    .btn:disabled{opacity:.4;transform:none}
-
-    .btn-email{background:linear-gradient(135deg,#3b5bdb,#7048e8);color:#fff}
-    .btn-code {background:linear-gradient(135deg,#2f9e44,#37b24d);color:#fff}
-    .btn-new  {background:var(--card);color:var(--muted);border:1.5px solid var(--border)}
-    .btn-new:active{background:#1c1f35}
-
-    .ico{font-size:1.4rem}
-
-    .spin{
-      display:inline-block;
-      width:20px;height:20px;
-      border:3px solid rgba(255,255,255,.25);
-      border-top-color:#fff;
-      border-radius:50%;
-      animation:rot .6s linear infinite;
-    }
-
-    @keyframes rot{to{transform:rotate(360deg)}}
-
-    /* ── Auto row ─────────────────────────── */
-    .auto-row{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      padding:0 2px;
-    }
-
-    .auto-label{
-      font-size:.75rem;
-      color:var(--muted);
-      display:flex;
-      align-items:center;
-      gap:6px;
-    }
-
+    .auto-row{display:flex;align-items:center;gap:6px;font-size:.75rem;color:var(--muted)}
     .cd{font-size:.72rem;color:var(--blue);min-width:20px}
-
-    .toggle{position:relative;width:40px;height:22px}
+    .toggle{position:relative;width:38px;height:20px}
     .toggle input{display:none}
-    .track{
-      position:absolute;inset:0;
-      background:var(--border);
-      border-radius:22px;
-      cursor:pointer;
-      transition:.2s;
-    }
+    .track{position:absolute;inset:0;background:var(--border);border-radius:20px;cursor:pointer;transition:.2s}
     .track::before{
-      content:'';
-      position:absolute;
-      width:15px;height:15px;
-      background:var(--muted);
-      border-radius:50%;
-      top:3.5px;left:3.5px;
-      transition:.2s;
+      content:'';position:absolute;width:13px;height:13px;
+      background:var(--muted);border-radius:50%;top:3.5px;left:3.5px;transition:.2s;
     }
     .toggle input:checked+.track{background:#1d3a6e}
     .toggle input:checked+.track::before{background:var(--blue);transform:translateX(18px)}
 
-    /* ── Screen flash ─────────────────────── */
-    #flash{
-      position:fixed;inset:0;
-      background:rgba(47,158,68,.3);
-      pointer-events:none;
-      opacity:0;
-      transition:opacity .1s;
-      z-index:999;
+    /* ── Info boxes ───────────────────────────── */
+    .info-row{display:flex;gap:10px}
+    .info-box{
+      flex:1;background:var(--card);border:1.5px solid var(--border);
+      border-radius:var(--r);padding:10px 14px;cursor:pointer;
+      transition:border-color .15s;-webkit-user-select:none;user-select:none;
+      position:relative;overflow:hidden;min-height:64px;
+      display:flex;flex-direction:column;justify-content:center;
     }
+    .info-box.email-box{flex:1.5}
+    .info-box.active{border-color:var(--blue)}
+    .info-box.code-box.active{border-color:var(--gl)}
+    .info-box:active{opacity:.8}
+    .info-label{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:4px}
+    .info-val{font-size:.82rem;font-weight:700;color:var(--blue);word-break:break-all;line-height:1.2}
+    .code-box .info-val{font-size:2rem;letter-spacing:8px;color:var(--gl);text-align:center}
+    .info-muted{font-size:.72rem;color:var(--muted)}
+    .info-box::after{
+      content:'✓ Nusxalandi';position:absolute;inset:0;
+      background:rgba(47,158,68,.92);display:flex;align-items:center;
+      justify-content:center;font-size:.95rem;font-weight:800;color:#fff;
+      opacity:0;transition:opacity .15s;border-radius:calc(var(--r) - 1px);
+    }
+    .info-box.flash::after{opacity:1}
 
+    /* ── Status ───────────────────────────────── */
+    .status{
+      padding:9px 14px;border-radius:10px;font-size:.78rem;font-weight:500;
+      text-align:center;background:var(--card);border:1px solid var(--border);
+      color:var(--muted);transition:all .2s;min-height:36px;
+      display:flex;align-items:center;justify-content:center;gap:6px;
+    }
+    .status.ok{border-color:var(--green);color:var(--gl);background:#0a1f0d}
+    .status.err{border-color:var(--red);color:#ff8787;background:#1f0a0a}
+    .status.info{border-color:var(--blue);color:#91a7ff;background:#0a0e2a}
+
+    /* ── Buttons ──────────────────────────────── */
+    .btns{display:flex;flex-direction:column;gap:10px;flex:1}
+    .btn{
+      flex:1;border:none;border-radius:var(--r);font-weight:800;font-size:1rem;
+      cursor:pointer;-webkit-tap-highlight-color:transparent;
+      display:flex;align-items:center;justify-content:center;gap:10px;
+      transition:transform .1s;min-height:64px;letter-spacing:.2px;
+    }
+    .btn:active{transform:scale(.96)}
+    .btn:disabled{opacity:.4;transform:none}
+    .btn-email{background:linear-gradient(135deg,#c0392b,#e74c3c);color:#fff}
+    .btn-code{background:linear-gradient(135deg,var(--green),#37b24d);color:#fff}
+    .btn-new{background:var(--card);color:var(--muted);border:1.5px solid var(--border)}
+    .btn-new:active{background:#1c1f35}
+    .ico{font-size:1.4rem}
+
+    .spin{
+      display:inline-block;width:20px;height:20px;
+      border:3px solid rgba(255,255,255,.25);border-top-color:#fff;
+      border-radius:50%;animation:rot .6s linear infinite;
+    }
+    @keyframes rot{to{transform:rotate(360deg)}}
+
+    /* ── Flash overlay ────────────────────────── */
+    #flash{
+      position:fixed;inset:0;background:rgba(47,158,68,.28);
+      pointer-events:none;opacity:0;transition:opacity .1s;z-index:999;
+    }
     #flash.on{opacity:1}
   </style>
 </head>
@@ -244,77 +147,135 @@
 
 <div id="flash"></div>
 
-<!-- Email + Code displays -->
-<div class="info-row">
-  <div class="info-box email-box" id="emailBox" onclick="tap('email')">
-    <div class="info-label">Email</div>
-    <div class="info-muted" id="eEmpty">Hali yo'q</div>
-    <div class="info-val" id="eVal" style="display:none"></div>
-  </div>
-  <div class="info-box code-box" id="codeBox" onclick="tap('code')">
-    <div class="info-label">Kod</div>
-    <div class="info-muted" id="cEmpty" style="text-align:center">—</div>
-    <div class="info-val" id="cVal" style="display:none"></div>
-  </div>
+<!-- ══ SETUP SCREEN ══════════════════════════════ -->
+<div id="setupScreen">
+  <div class="setup-logo">📧</div>
+  <div class="setup-title">Gmailnator</div>
+  <div class="setup-sub">Telegram uchun vaqtinchalik<br><strong>@gmail.com</strong> manzillar</div>
+  <input class="setup-input" id="keyInput" type="password"
+    placeholder="RapidAPI kalitingizni kiriting..."
+    autocomplete="off" autocorrect="off" spellcheck="false"/>
+  <button class="setup-btn" onclick="saveKey()">Saqlash va boshlash</button>
+  <div class="setup-note">Kalit faqat qurilmangizda saqlanadi</div>
 </div>
 
-<!-- Status -->
-<div class="status" id="st">Tayyor</div>
+<!-- ══ MAIN SCREEN ═══════════════════════════════ -->
+<div id="mainScreen">
 
-<!-- Buttons -->
-<div class="btns">
-  <button class="btn btn-email" id="bEmail" onclick="genEmail()">
-    <span class="ico">📧</span> EMAIL OL
-  </button>
-  <button class="btn btn-code" id="bCode" onclick="getCode()" disabled>
-    <span class="ico">🔍</span> KOD OL
-  </button>
-  <button class="btn btn-new" id="bNew" onclick="newEmail()" disabled>
-    <span class="ico">🔄</span> YANGI EMAIL
-  </button>
-</div>
-
-<!-- Auto refresh -->
-<div class="auto-row">
-  <div class="auto-label">
-    <label class="toggle">
-      <input type="checkbox" id="autoChk" onchange="toggleAuto()"/>
-      <span class="track"></span>
-    </label>
-    Avtomatik tekshiruv
-    <span class="cd" id="cdTxt"></span>
+  <!-- Header -->
+  <div class="hdr">
+    <div class="logo">Gmail<span>nator</span></div>
+    <div class="hdr-right">
+      <div class="auto-row">
+        <label class="toggle">
+          <input type="checkbox" id="autoChk" onchange="toggleAuto()"/>
+          <span class="track"></span>
+        </label>
+        Avto
+        <span class="cd" id="cdTxt"></span>
+      </div>
+      <button class="btn-gear" onclick="showSetup()" title="Kalitni o'zgartirish">⚙️</button>
+    </div>
   </div>
+
+  <!-- Email + Code -->
+  <div class="info-row">
+    <div class="info-box email-box" id="emailBox" onclick="tap('email')">
+      <div class="info-label">Gmail manzil</div>
+      <div class="info-muted" id="eEmpty">Hali yaratilmagan</div>
+      <div class="info-val" id="eVal" style="display:none"></div>
+    </div>
+    <div class="info-box code-box" id="codeBox" onclick="tap('code')">
+      <div class="info-label">Kod</div>
+      <div class="info-muted" id="cEmpty" style="text-align:center">—</div>
+      <div class="info-val" id="cVal" style="display:none"></div>
+    </div>
+  </div>
+
+  <!-- Status -->
+  <div class="status" id="st">Tayyor — Gmail yaratishdan boshlang</div>
+
+  <!-- 3 buttons -->
+  <div class="btns">
+    <button class="btn btn-email" id="bEmail" onclick="genEmail()">
+      <span class="ico">📧</span> GMAIL OL
+    </button>
+    <button class="btn btn-code" id="bCode" onclick="getCode()" disabled>
+      <span class="ico">🔍</span> KOD OL
+    </button>
+    <button class="btn btn-new" id="bNew" onclick="newEmail()" disabled>
+      <span class="ico">🔄</span> YANGI GMAIL
+    </button>
+  </div>
+
 </div>
 
 <script>
-const API = 'https://api.mail.tm';
-let token='', email='', lastCode='', seenIds=new Set();
-let cdTimer=null, cdSec=0, busy=false;
-const AUTO=15;
+const BASE = 'https://gmailnator.p.rapidapi.com/api';
+const HOST = 'gmailnator.p.rapidapi.com';
+// Faqat @gmail.com turlari
+const TYPES = ['public_gmail_plus','public_gmail_dot','private_gmail_plus','private_gmail_dot'];
+const AUTO_SEC = 15;
 
-// ── Service Worker ──────────────────────────────────────
+let apiKey='', curEmail='', lastCode='', seenIds=new Set();
+let cdTimer=null, cdSec=0, busy=false;
+
+// ── Service Worker ───────────────────────────────
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('sw.js').catch(()=>{});
 }
 
-// ── Status helper ───────────────────────────────────────
-function st(msg,type=''){
-  const el=document.getElementById('st');
-  el.textContent=msg; el.className='status '+type;
+// ── Init ─────────────────────────────────────────
+window.onload=()=>{
+  apiKey=localStorage.getItem('gn_key')||'';
+  if(apiKey){
+    show('main');
+    loadSaved();
+  }else{
+    show('setup');
+  }
+};
+
+function show(screen){
+  document.getElementById('setupScreen').style.display = screen==='setup'?'flex':'none';
+  document.getElementById('mainScreen').style.display  = screen==='main' ?'flex':'none';
 }
 
-// ── API ─────────────────────────────────────────────────
-async function api(path,opts={}){
-  const h={'Content-Type':'application/json'};
-  if(token) h['Authorization']='Bearer '+token;
-  const r=await fetch(API+path,{...opts,headers:h});
-  if(r.status===204) return {};
+function saveKey(){
+  const k=document.getElementById('keyInput').value.trim();
+  if(!k){alert('Kalit kiriting!');return}
+  apiKey=k;
+  localStorage.setItem('gn_key',k);
+  document.getElementById('keyInput').value='';
+  show('main');
+  loadSaved();
+}
+
+function showSetup(){
+  stopAuto();
+  document.getElementById('autoChk').checked=false;
+  show('setup');
+}
+
+function loadSaved(){
+  const e=localStorage.getItem('gn_email');
+  const c=localStorage.getItem('gn_code');
+  if(e){curEmail=e;showEmail(e);document.getElementById('bCode').disabled=false;document.getElementById('bNew').disabled=false}
+  if(c){lastCode=c;showCode(c)}
+}
+
+// ── API ───────────────────────────────────────────
+async function gn(method,path,body){
+  const h={'Content-Type':'application/json','x-rapidapi-host':HOST,'x-rapidapi-key':apiKey};
+  const opts={method,headers:h};
+  if(body) opts.body=JSON.stringify(body);
+  const r=await fetch(BASE+path,opts);
   const d=await r.json();
-  if(!r.ok) throw new Error(d?.['hydra:description']||d?.detail||'HTTP '+r.status);
+  if(!r.ok) throw new Error(d?.message||d?.error||'HTTP '+r.status);
   return d;
 }
 
-// ── Clipboard ───────────────────────────────────────────
+// ── Clipboard ─────────────────────────────────────
 async function copy(text){
   if(navigator.clipboard&&window.isSecureContext){
     try{await navigator.clipboard.writeText(text);return true}catch{}
@@ -348,71 +309,66 @@ function beep(){
   }catch{}
 }
 
-// ── Tap to copy ─────────────────────────────────────────
+// ── Status ────────────────────────────────────────
+function st(msg,type=''){
+  const el=document.getElementById('st');
+  el.textContent=msg;el.className='status '+type;
+}
+
+// ── Tap copy ──────────────────────────────────────
 async function tap(type){
-  const text=type==='email'?email:lastCode;
-  if(!text) return;
+  const text=type==='email'?curEmail:lastCode;
+  if(!text)return;
   await copy(text);
   flashBox(type==='email'?'emailBox':'codeBox');
 }
 
-// ── Generate email ──────────────────────────────────────
+// ── Generate email ────────────────────────────────
 async function genEmail(){
-  if(busy) return;
-  busy=true; stopAuto();
-  seenIds.clear(); lastCode='';
-  showCode(null);
+  if(busy)return;
+  busy=true;stopAuto();
+  seenIds.clear();lastCode='';showCode(null);
+  localStorage.removeItem('gn_code');
 
-  setBtns(true);
-  document.getElementById('bEmail').innerHTML='<span class="spin"></span>';
-  st('Email yaratilmoqda...','info');
+  setBtn('bEmail',true,'<span class="spin"></span>');
+  st('Gmail yaratilmoqda...','info');
 
   try{
-    const dr=await api('/domains?page=1');
-    const dom=dr['hydra:member']?.[0]?.domain;
-    if(!dom) throw new Error('Domen topilmadi');
+    const d=await gn('POST','/emails/generate',{type:TYPES});
+    if(d.status!=='success') throw new Error(d.message||'Xatolik');
 
-    const u=Math.random().toString(36).slice(2,10);
-    const p=Math.random().toString(36).slice(2,18)+'Aa1!';
-    const addr=`${u}@${dom}`;
-
-    await api('/accounts',{method:'POST',body:JSON.stringify({address:addr,password:p})});
-    const tr=await api('/token',{method:'POST',body:JSON.stringify({address:addr,password:p})});
-    token=tr.token; email=addr;
-
-    showEmail(addr);
-    await copy(addr);
+    curEmail=d.email;
+    localStorage.setItem('gn_email',curEmail);
+    showEmail(curEmail);
+    await copy(curEmail);
     flashBox('emailBox');
-    st('✓ Email nusxalandi — Telegramga yopish','ok');
+    st('✓ '+curEmail+' — Telegramga yopish','ok');
 
-    document.getElementById('autoChk').checked=true;
-    startAuto();
     document.getElementById('bCode').disabled=false;
     document.getElementById('bNew').disabled=false;
+    document.getElementById('autoChk').checked=true;
+    startAuto();
   }catch(e){
     st('✗ '+e.message,'err');
   }finally{
     busy=false;
-    document.getElementById('bEmail').innerHTML='<span class="ico">📧</span> EMAIL OL';
-    setBtns(false);
+    setBtn('bEmail',false,'<span class="ico">📧</span> GMAIL OL');
   }
 }
 
-// ── New email (reset) ───────────────────────────────────
 async function newEmail(){
   stopAuto();
   document.getElementById('autoChk').checked=false;
   document.getElementById('bCode').disabled=true;
   document.getElementById('bNew').disabled=true;
-  showEmail(null);
-  showCode(null);
+  showEmail(null);showCode(null);
   await genEmail();
 }
 
-// ── Extract code ────────────────────────────────────────
-function extract(text){
-  if(!text) return null;
-  const t=text.replace(/<[^>]+>/g,' ').replace(/&nbsp;/g,' ');
+// ── Extract code ──────────────────────────────────
+function extract(html){
+  if(!html)return null;
+  const t=html.replace(/<[^>]+>/g,' ').replace(/&nbsp;/g,' ').replace(/&#\d+;/g,' ');
   for(const p of[
     /(?:login|verif|confirm|code|kod)[^\d]*(\d{4,8})/i,
     /(\d{5,6})\s*(?:is your|bu sizning)/i,
@@ -422,20 +378,19 @@ function extract(text){
   return null;
 }
 
-// ── Check inbox ─────────────────────────────────────────
+// ── Check inbox ───────────────────────────────────
 async function getCode(isAuto=false){
-  if(!token||busy) return;
+  if(!curEmail||busy)return;
   busy=true;
 
   if(!isAuto){
-    document.getElementById('bCode').disabled=true;
-    document.getElementById('bCode').innerHTML='<span class="spin"></span>';
+    setBtn('bCode',true,'<span class="spin"></span>');
     st('Inbox tekshirilmoqda...','info');
   }
 
   try{
-    const res=await api('/messages?page=1');
-    const msgs=res['hydra:member']||[];
+    const res=await gn('POST','/inbox/',{email:curEmail,limit:20});
+    const msgs=res.messages||[];
 
     if(!msgs.length){
       st('📭 Xabar hali kelmadi — kutilmoqda','');
@@ -444,105 +399,74 @@ async function getCode(isAuto=false){
 
     const unseen=msgs.filter(m=>!seenIds.has(m.id));
     const target=unseen.length?unseen[0]:msgs[0];
-    const full=await api('/messages/'+target.id);
     seenIds.add(target.id);
 
-    const raw=full.text||(full.html?.join(' ')?? '');
-    const code=extract(raw);
+    const full=await gn('GET','/inbox/'+encodeURIComponent(target.id));
+    const code=extract(full.content||'');
 
     if(code){
       lastCode=code;
+      localStorage.setItem('gn_code',code);
       showCode(code);
       await copy(code);
       flashBox('codeBox');
-      flashScreen();
-      beep();
+      flashScreen();beep();
       st('✓ Kod: '+code+' — Telegramga yopish','ok');
       document.getElementById('autoChk').checked=false;
       stopAuto();
     }else{
-      st('Xabar keldi — kod topilmadi ('+full.from?.address+')','info');
+      st('Xabar keldi ('+target.from+') — kod topilmadi','info');
     }
   }catch(e){
-    if(!isAuto) st('✗ '+e.message,'err');
+    if(!isAuto)st('✗ '+e.message,'err');
   }finally{
     busy=false;
-    if(!isAuto){
-      document.getElementById('bCode').disabled=false;
-      document.getElementById('bCode').innerHTML='<span class="ico">🔍</span> KOD OL';
-    }
+    if(!isAuto)setBtn('bCode',false,'<span class="ico">🔍</span> KOD OL');
   }
 }
 
-// ── UI helpers ──────────────────────────────────────────
+// ── UI helpers ────────────────────────────────────
 function showEmail(addr){
   document.getElementById('eEmpty').style.display=addr?'none':'block';
   const v=document.getElementById('eVal');
-  v.textContent=addr||''; v.style.display=addr?'block':'none';
+  v.textContent=addr||'';v.style.display=addr?'block':'none';
   document.getElementById('emailBox').classList.toggle('active',!!addr);
 }
 
 function showCode(code){
   document.getElementById('cEmpty').style.display=code?'none':'block';
   const v=document.getElementById('cVal');
-  v.textContent=code||''; v.style.display=code?'block':'none';
+  v.textContent=code||'';v.style.display=code?'block':'none';
   document.getElementById('codeBox').classList.toggle('active',!!code);
 }
 
-function setBtns(disabled){
-  ['bEmail','bCode','bNew'].forEach(id=>{
-    if(id!=='bCode'&&id!=='bNew') document.getElementById(id).disabled=disabled;
-  });
+function setBtn(id,disabled,html){
+  const el=document.getElementById(id);
+  el.disabled=disabled;el.innerHTML=html;
 }
 
-// ── Auto refresh ─────────────────────────────────────────
+// ── Auto refresh ──────────────────────────────────
 function toggleAuto(){
   document.getElementById('autoChk').checked?startAuto():stopAuto();
 }
 
 function startAuto(){
-  stopAuto();
-  cdSec=AUTO; updateCd();
+  stopAuto();cdSec=AUTO_SEC;updateCd();
   cdTimer=setInterval(async()=>{
     cdSec--;
-    if(cdSec<=0){cdSec=AUTO;await getCode(true)}
+    if(cdSec<=0){cdSec=AUTO_SEC;await getCode(true)}
     updateCd();
   },1000);
 }
 
 function stopAuto(){
   if(cdTimer){clearInterval(cdTimer);cdTimer=null}
-  cdSec=0; updateCd();
+  cdSec=0;updateCd();
 }
 
 function updateCd(){
   document.getElementById('cdTxt').textContent=cdSec>0?cdSec+'s':'';
 }
-
-// ── State persistence ───────────────────────────────────
-// localStorage'ga saqlash (sahifa yopib qayta ochilganda)
-function saveState(){
-  if(email) localStorage.setItem('tm_email',email);
-  if(token) localStorage.setItem('tm_token',token);
-  if(lastCode) localStorage.setItem('tm_code',lastCode);
-}
-
-function loadState(){
-  const e=localStorage.getItem('tm_email');
-  const t=localStorage.getItem('tm_token');
-  const c=localStorage.getItem('tm_code');
-  if(e&&t){
-    email=e; token=t;
-    showEmail(e);
-    document.getElementById('bCode').disabled=false;
-    document.getElementById('bNew').disabled=false;
-    st('Avvalgi email yuklandi','info');
-  }
-  if(c){lastCode=c;showCode(c)}
-}
-
-window.addEventListener('beforeunload',saveState);
-loadState();
 </script>
 </body>
 </html>

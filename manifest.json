@@ -1,7 +1,7 @@
 {
-  "name": "Tempmail",
-  "short_name": "Tempmail",
-  "description": "Vaqtinchalik email va kod olish",
+  "name": "Gmailnator",
+  "short_name": "Gmailnator",
+  "description": "Telegram uchun @gmail.com va kod olish",
   "start_url": "/GMAILNATOR/",
   "scope": "/GMAILNATOR/",
   "display": "standalone",
