@@ -39,11 +39,13 @@ class TelegramAutoService : AccessibilityService() {
     // ── Kod ekrani kalit so'zlari (EN + RU + UZ) ─────────
     private val CODE_KW = listOf(
         // English
-        "code", "verification", "login code", "enter code", "digit", "otp", "confirm",
+        "verification code", "code", "verification", "login code",
+        "enter code", "digit", "otp", "confirm", "check your email",
         // Russian
-        "код", "введите код", "подтвер", "проверочн", "код подтверждения",
+        "код", "введите код", "подтвер", "проверочн",
+        "код подтверждения", "проверьте",
         // Uzbek
-        "kod", "tasdiqlash", "kodni", "kiriting"
+        "kod", "tasdiqlash", "kodni", "kiriting", "tekshiring"
     )
 
     // ── "Next" tugma matnlari (EN + RU + UZ) ─────────────
@@ -171,12 +173,33 @@ class TelegramAutoService : AccessibilityService() {
         showToast("✓ Kod: $code")
         clipboard(code)
         val root = rootInActiveWindow ?: run { resetState(); return }
-        val field = findEditableEmpty(allNodes(root))
-        if (field != null) setText(field, code)
+        val nodes = allNodes(root)
+
+        // 1. Fokusdagi tahrirlash maydoni (eng ishonchli)
+        val focused = nodes.firstOrNull { it.isEditable && it.isFocused }
+        if (focused != null) {
+            setText(focused, code)
+            focused.performAction(AccessibilityNodeInfo.ACTION_PASTE)
+        } else {
+            // 2. Istalgan tahrirlash maydoni
+            val editable = nodes.firstOrNull { it.isEditable && it.isEnabled }
+            if (editable != null) {
+                editable.performAction(AccessibilityNodeInfo.ACTION_FOCUS)
+                setText(editable, code)
+                editable.performAction(AccessibilityNodeInfo.ACTION_PASTE)
+            } else {
+                // 3. Fokusdagi har qanday element (OTP widget) → paste
+                val anyFocused = nodes.firstOrNull { it.isFocused }
+                anyFocused?.performAction(AccessibilityNodeInfo.ACTION_PASTE)
+                // 4. Clipboard'dan paste — klaviatura orqali
+                performGlobalAction(GLOBAL_ACTION_BACK) // klaviaturani faollashtirish
+            }
+        }
+
         handler.postDelayed({
             rootInActiveWindow?.let { clickNext(it) }
-        }, 600)
-        handler.postDelayed({ resetState() }, 2000)
+        }, 1000)
+        handler.postDelayed({ resetState() }, 3000)
     }
 
     private fun resetState() {
