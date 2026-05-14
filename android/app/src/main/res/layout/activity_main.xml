@@ -1,111 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="28dp"
     android:background="#0d0d14">
 
-  <LinearLayout
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:orientation="vertical"
-      android:padding="24dp"
-      android:gravity="center_horizontal">
-
-    <TextView android:text="📧" android:textSize="48sp" android:gravity="center"
+    <TextView android:text="📧" android:textSize="56sp" android:gravity="center"
         android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:layout_marginTop="32dp" android:layout_marginBottom="8dp"/>
+        android:layout_marginBottom="12dp"/>
 
-    <TextView android:text="Gmailnator" android:textSize="24sp" android:textStyle="bold"
+    <TextView android:text="Gmailnator" android:textSize="26sp" android:textStyle="bold"
         android:textColor="#e9ecef" android:gravity="center"
         android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:layout_marginBottom="32dp"/>
+        android:layout_marginBottom="8dp"/>
 
-    <!-- ══ Setup: Server URL ══ -->
-    <LinearLayout android:id="@+id/setupView"
+    <TextView android:text="Telegram uchun @gmail.com" android:textSize="13sp"
+        android:textColor="#5c6380" android:gravity="center"
         android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:orientation="vertical" android:visibility="gone">
+        android:layout_marginBottom="40dp"/>
 
-      <TextView android:text="Server IP manzili" android:textSize="12sp"
-          android:textColor="#94a3b8" android:layout_width="match_parent"
-          android:layout_height="wrap_content" android:layout_marginBottom="6dp"/>
+    <Button android:id="@+id/floatBtn"
+        android:layout_width="match_parent" android:layout_height="64dp"
+        android:text="📧  Floating Panel Yoqish"
+        android:textColor="#fff" android:textStyle="bold" android:textSize="16sp"
+        android:background="@drawable/bg_btn_primary"
+        android:layout_marginBottom="16dp"/>
 
-      <EditText android:id="@+id/serverInput"
-          android:layout_width="match_parent" android:layout_height="52dp"
-          android:background="@drawable/bg_input" android:padding="14dp"
-          android:textColor="#e9ecef" android:hint="http://192.168.1.100:4000"
-          android:textColorHint="#475569" android:inputType="textUri"
-          android:layout_marginBottom="12dp"/>
+    <TextView android:id="@+id/statusTv"
+        android:text="Ulaning..."
+        android:textSize="12sp" android:textColor="#5c6380"
+        android:gravity="center"
+        android:layout_width="match_parent" android:layout_height="wrap_content"/>
 
-      <Button android:id="@+id/saveServerBtn"
-          android:layout_width="match_parent" android:layout_height="52dp"
-          android:text="Saqlash va davom etish" android:textColor="#fff"
-          android:textStyle="bold" android:background="@drawable/bg_btn_primary"/>
-    </LinearLayout>
-
-    <!-- ══ Login ══ -->
-    <LinearLayout android:id="@+id/loginView"
-        android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:orientation="vertical" android:visibility="gone">
-
-      <TextView android:text="Login" android:textSize="12sp"
-          android:textColor="#94a3b8" android:layout_width="match_parent"
-          android:layout_height="wrap_content" android:layout_marginBottom="6dp"/>
-
-      <EditText android:id="@+id/loginInput"
-          android:layout_width="match_parent" android:layout_height="52dp"
-          android:background="@drawable/bg_input" android:padding="14dp"
-          android:textColor="#e9ecef" android:hint="login"
-          android:textColorHint="#475569" android:inputType="text"
-          android:layout_marginBottom="10dp"/>
-
-      <TextView android:text="Parol" android:textSize="12sp"
-          android:textColor="#94a3b8" android:layout_width="match_parent"
-          android:layout_height="wrap_content" android:layout_marginBottom="6dp"/>
-
-      <EditText android:id="@+id/passInput"
-          android:layout_width="match_parent" android:layout_height="52dp"
-          android:background="@drawable/bg_input" android:padding="14dp"
-          android:textColor="#e9ecef" android:hint="parol"
-          android:textColorHint="#475569" android:inputType="textPassword"
-          android:layout_marginBottom="12dp"/>
-
-      <Button android:id="@+id/loginBtn"
-          android:layout_width="match_parent" android:layout_height="56dp"
-          android:text="Kirish" android:textColor="#fff"
-          android:textStyle="bold" android:textSize="16sp"
-          android:background="@drawable/bg_btn_primary"/>
-
-      <TextView android:id="@+id/statusTv" android:text=""
-          android:textSize="12sp" android:textColor="#f87171"
-          android:gravity="center" android:layout_width="match_parent"
-          android:layout_height="wrap_content" android:layout_marginTop="10dp"/>
-    </LinearLayout>
-
-    <!-- ══ Main ══ -->
-    <LinearLayout android:id="@+id/mainView"
-        android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:orientation="vertical" android:visibility="gone">
-
-      <Button android:id="@+id/floatBtn"
-          android:layout_width="match_parent" android:layout_height="64dp"
-          android:text="📧  Floating Panel Yoqish"
-          android:textColor="#fff" android:textStyle="bold" android:textSize="16sp"
-          android:background="@drawable/bg_btn_primary"
-          android:layout_marginBottom="12dp"/>
-
-      <TextView android:id="@+id/statusTv" android:text="Tayyor"
-          android:textSize="12sp" android:textColor="#5c6380"
-          android:gravity="center" android:layout_width="match_parent"
-          android:layout_height="wrap_content" android:layout_marginBottom="20dp"/>
-
-      <View android:layout_width="match_parent" android:layout_height="1dp"
-          android:background="#222442" android:layout_marginBottom="16dp"/>
-
-      <Button android:id="@+id/logoutBtn"
-          android:layout_width="match_parent" android:layout_height="48dp"
-          android:text="Chiqish (logout)" android:textColor="#f87171"
-          android:textStyle="bold" android:background="@drawable/bg_btn_secondary"/>
-    </LinearLayout>
-
-  </LinearLayout>
-</ScrollView>
+</LinearLayout>

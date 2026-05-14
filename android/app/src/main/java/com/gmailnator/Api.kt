@@ -6,46 +6,42 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 
 object Api {
+    const val SERVER = "http://192.168.1.116:4000"
+
     private val client = OkHttpClient.Builder()
         .connectTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
         .readTimeout(20, java.util.concurrent.TimeUnit.SECONDS)
         .build()
     private val JSON = "application/json".toMediaType()
 
-    var serverUrl = ""
-    var token = ""
+    var deviceId   = ""
+    var deviceName = ""
 
     private fun req(method: String, path: String, body: String? = null): JSONObject {
-        if (serverUrl.isEmpty()) throw Exception("Server IP kiritilmagan")
         val rb = body?.toRequestBody(JSON)
         val req = Request.Builder()
-            .url("$serverUrl$path")
+            .url("$SERVER$path")
             .method(method, if (method == "GET") null else (rb ?: "{}".toRequestBody(JSON)))
-            .header("x-token", token)
-            .build()
-        val resp = client.newCall(req).execute()
-        val text = resp.body!!.string()
-        val json = JSONObject(text)
-        if (!resp.isSuccessful) {
-            throw Exception(json.optString("error", "HTTP ${resp.code}"))
-        }
-        return json
-    }
-
-    fun login(login: String, password: String, deviceId: String, deviceName: String): String {
-        if (serverUrl.isEmpty()) throw Exception("Server IP kiritilmagan")
-        val body = JSONObject().apply {
-            put("login", login); put("password", password)
-            put("deviceId", deviceId); put("deviceName", deviceName)
-        }.toString()
-        val req = Request.Builder()
-            .url("$serverUrl/login")
-            .post(body.toRequestBody(JSON))
+            .header("x-device-id", deviceId)
+            .header("x-device-name", deviceName)
             .build()
         val resp = client.newCall(req).execute()
         val json = JSONObject(resp.body!!.string())
-        if (!resp.isSuccessful) throw Exception(json.optString("error", "Login xatosi"))
-        return json.getString("token")
+        if (!resp.isSuccessful) throw Exception(json.optString("error", "HTTP ${resp.code}"))
+        return json
+    }
+
+    fun connect(): Boolean {
+        val req = Request.Builder()
+            .url("$SERVER/connect")
+            .post("{}".toRequestBody(JSON))
+            .header("x-device-id", deviceId)
+            .header("x-device-name", deviceName)
+            .build()
+        val resp = client.newCall(req).execute()
+        val json = JSONObject(resp.body!!.string())
+        if (!resp.isSuccessful) throw Exception(json.optString("error", "Xatolik"))
+        return true
     }
 
     fun generateEmail(): String {
@@ -67,7 +63,7 @@ object Api {
     }
 
     fun getMessage(msgId: String): String {
-        val j = req("GET", "/message/${msgId}")
+        val j = req("GET", "/message/$msgId")
         return j.optString("content", "")
     }
 

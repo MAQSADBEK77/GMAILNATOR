@@ -2,6 +2,7 @@ package com.gmailnator
 
 import android.app.*
 import android.content.*
+import android.provider.Settings
 import android.graphics.*
 import android.graphics.drawable.GradientDrawable
 import android.os.*
@@ -21,10 +22,9 @@ class FloatingService : Service() {
     private val executor = Executors.newSingleThreadExecutor()
     private val handler = Handler(Looper.getMainLooper())
 
-    private val prefs by lazy { getSharedPreferences("gn", Context.MODE_PRIVATE) }
     private fun initApi() {
-        Api.serverUrl = prefs.getString("server_url", "") ?: ""
-        Api.token     = prefs.getString("token", "") ?: ""
+        Api.deviceId   = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
+        Api.deviceName = android.os.Build.MANUFACTURER + " " + android.os.Build.MODEL
     }
 
     private var curEmail = ""

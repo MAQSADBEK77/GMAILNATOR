@@ -1,5 +1,4 @@
 const express = require('express');
-const crypto  = require('crypto');
 const fs      = require('fs');
 const path    = require('path');
 const fetch   = require('node-fetch');
@@ -8,16 +7,10 @@ const os      = require('os');
 const app  = express();
 const PORT = 4000;
 
-// ── Sozlamalar ──────────────────────────────────────────
-const LOGIN    = 'salom';
-const PASSWORD = '0007';
-const API_KEY  = '03968cdfa2mshe3451f14a06bd97p1f11a0jsn63618796d7f7';
-const RH       = 'gmailnator.p.rapidapi.com';
-const RB       = `https://${RH}/api`;
-const SECRET   = crypto.randomBytes(32).toString('hex'); // har start yangi secret
-const TTL      = 24 * 60 * 60 * 1000; // 24 soat
+const API_KEY = '03968cdfa2mshe3451f14a06bd97p1f11a0jsn63618796d7f7';
+const RH      = 'gmailnator.p.rapidapi.com';
+const RB      = `https://${RH}/api`;
 
-// ── Ma'lumotlar ─────────────────────────────────────────
 const DATA = path.join(__dirname, 'devices.json');
 function load() {
   try { return JSON.parse(fs.readFileSync(DATA, 'utf8')); }
@@ -25,76 +18,66 @@ function load() {
 }
 function save(db) { fs.writeFileSync(DATA, JSON.stringify(db, null, 2)); }
 
-// ── Token ───────────────────────────────────────────────
-function mkToken(deviceId) {
-  const ts  = Date.now().toString();
-  const sig = crypto.createHmac('sha256', SECRET).update(`${deviceId}:${ts}`).digest('hex');
-  return Buffer.from(`${deviceId}|${ts}|${sig}`).toString('base64url');
-}
-function checkToken(tok) {
-  try {
-    const [deviceId, ts, sig] = Buffer.from(tok, 'base64url').toString().split('|');
-    const ok = crypto.createHmac('sha256', SECRET).update(`${deviceId}:${ts}`).digest('hex');
-    if (sig !== ok) return null;
-    if (Date.now() - parseInt(ts) > TTL) return null;
-    return deviceId;
-  } catch { return null; }
-}
-
-// ── Middleware ──────────────────────────────────────────
 app.use(express.json());
 
+// ── Auth middleware ─────────────────────────────────────
 function auth(req, res, next) {
-  const tok = req.headers['x-token'];
-  if (!tok) return res.status(401).json({ error: 'Token yo\'q — login qiling' });
-  const did = checkToken(tok);
-  if (!did) return res.status(401).json({ error: 'Token eskirgan — qayta login qiling' });
+  const did = req.headers['x-device-id'];
+  if (!did) return res.status(401).json({ error: 'Qurilma ID yo\'q' });
+
   const db  = load();
-  const dev = db.devices[did];
-  if (!dev) return res.status(403).json({ error: 'Maqsadbek ruxsat bermagan' });
-  if (!dev.allowed) return res.status(403).json({ error: 'Maqsadbek ruxsat bermagan' });
-  req.did = did;
-  next();
-}
-
-// ── Login ───────────────────────────────────────────────
-app.post('/login', (req, res) => {
-  const { login, password, deviceId, deviceName } = req.body || {};
-  if (login !== LOGIN || password !== PASSWORD)
-    return res.status(401).json({ error: 'Login yoki parol noto\'g\'ri' });
-  if (!deviceId) return res.status(400).json({ error: 'deviceId yo\'q' });
-
-  const db = load();
-  if (!db.devices[deviceId]) {
-    db.devices[deviceId] = {
-      name: deviceName || 'Yangi qurilma',
+  if (!db.devices[did]) {
+    db.devices[did] = {
+      name: req.headers['x-device-name'] || 'Yangi qurilma',
       allowed: false,
       firstSeen: new Date().toISOString(),
       lastSeen: new Date().toISOString(),
       stats: {}
     };
     save(db);
-    return res.status(403).json({ error: 'Maqsadbek ruxsat bermagan (yangi qurilma — admin paneldan ruxsat bering)' });
+    return res.status(403).json({ error: 'Maqsadbek ruxsat bermagan' });
   }
 
-  db.devices[deviceId].lastSeen = new Date().toISOString();
-  if (deviceName) db.devices[deviceId].name = deviceName;
+  db.devices[did].lastSeen = new Date().toISOString();
+  const name = req.headers['x-device-name'];
+  if (name && db.devices[did].name === 'Yangi qurilma') db.devices[did].name = name;
   save(db);
 
-  if (!db.devices[deviceId].allowed)
+  if (!db.devices[did].allowed)
     return res.status(403).json({ error: 'Maqsadbek ruxsat bermagan' });
 
-  const token = mkToken(deviceId);
-  res.json({ token, expiresIn: TTL });
+  req.did = did;
+  next();
+}
+
+// ── Connect (qurilmani ro'yxatdan o'tkazish) ────────────
+app.post('/connect', (req, res) => {
+  const did  = req.headers['x-device-id'];
+  const name = req.headers['x-device-name'] || 'Yangi qurilma';
+  if (!did) return res.status(400).json({ error: 'ID yo\'q' });
+
+  const db = load();
+  if (!db.devices[did]) {
+    db.devices[did] = { name, allowed: false, firstSeen: new Date().toISOString(), lastSeen: new Date().toISOString(), stats: {} };
+    save(db);
+    return res.status(403).json({ error: 'Maqsadbek ruxsat bermagan' });
+  }
+  db.devices[did].lastSeen = new Date().toISOString();
+  if (name && db.devices[did].name === 'Yangi qurilma') db.devices[did].name = name;
+  save(db);
+
+  if (!db.devices[did].allowed)
+    return res.status(403).json({ error: 'Maqsadbek ruxsat bermagan' });
+
+  res.json({ ok: true });
 });
 
 // ── Gmailnator proxy ────────────────────────────────────
-async function gn(method, path2, body) {
+async function gn(method, p, body) {
   const opts = { method, headers: { 'Content-Type': 'application/json', 'x-rapidapi-host': RH, 'x-rapidapi-key': API_KEY } };
   if (body) opts.body = JSON.stringify(body);
-  const r = await fetch(RB + path2, opts);
-  const d = await r.json();
-  return { status: r.status, data: d };
+  const r = await fetch(RB + p, opts);
+  return { status: r.status, data: await r.json() };
 }
 
 app.post('/generate', auth, async (req, res) => {
@@ -103,10 +86,8 @@ app.post('/generate', auth, async (req, res) => {
       type: ['public_gmail_plus', 'public_gmail_dot', 'private_gmail_plus', 'private_gmail_dot']
     });
     if (data.status === 'success') {
-      const db = load();
-      const today = new Date().toISOString().slice(0, 10);
-      const dev = db.devices[req.did];
-      dev.stats[today] = (dev.stats[today] || 0) + 1;
+      const db = load(), today = new Date().toISOString().slice(0, 10);
+      db.devices[req.did].stats[today] = (db.devices[req.did].stats[today] || 0) + 1;
       save(db);
     }
     res.status(status).json(data);
@@ -127,24 +108,20 @@ app.get('/message/:id', auth, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── Admin API (faqat localhost) ─────────────────────────
+// ── Admin (faqat localhost) ─────────────────────────────
 function adminOnly(req, res, next) {
   const ip = req.ip || '';
   if (ip.includes('127.0.0.1') || ip.includes('::1')) return next();
-  res.status(403).send('Admin panel faqat kompyuterdan ochiladi');
+  res.status(403).send('Admin panel faqat kompyuterdan');
 }
 
 app.get('/admin', adminOnly, (req, res) => res.sendFile(path.join(__dirname, 'admin.html')));
 
 app.get('/admin/data', adminOnly, (req, res) => {
-  const db = load();
-  const today = new Date().toISOString().slice(0, 10);
+  const db = load(), today = new Date().toISOString().slice(0, 10);
   const list = Object.entries(db.devices).map(([id, d]) => ({
-    id,
-    name: d.name,
-    allowed: d.allowed,
-    firstSeen: d.firstSeen,
-    lastSeen: d.lastSeen,
+    id, name: d.name, allowed: d.allowed,
+    firstSeen: d.firstSeen, lastSeen: d.lastSeen,
     todayEmails: d.stats?.[today] || 0,
     totalEmails: Object.values(d.stats || {}).reduce((a, b) => a + b, 0),
     stats: d.stats || {}
