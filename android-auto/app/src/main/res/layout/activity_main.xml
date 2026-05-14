@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:gravity="center"
+    android:padding="28dp" android:background="#0d0d14">
+
+    <TextView android:text="🤖" android:textSize="60sp" android:gravity="center"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"/>
+
+    <TextView android:text="Gmailnator Auto" android:textSize="24sp" android:textStyle="bold"
+        android:textColor="#e9ecef" android:gravity="center"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_marginBottom="6dp"/>
+
+    <TextView android:text="Telegram'ni to'liq avtomatik ro'yxatdan o'tkazish"
+        android:textSize="12sp" android:textColor="#5c6380" android:gravity="center"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_marginBottom="36dp"/>
+
+    <Button android:id="@+id/enableBtn"
+        android:layout_width="match_parent" android:layout_height="60dp"
+        android:text="Accessibility'ni Yoqish"
+        android:textColor="#fff" android:textStyle="bold" android:textSize="15sp"
+        android:background="@drawable/bg_btn_primary" android:layout_marginBottom="14dp"/>
+
+    <TextView android:id="@+id/statusTv"
+        android:text="Tekshirilmoqda..." android:textSize="12sp"
+        android:textColor="#5c6380" android:gravity="center"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp" android:lineSpacingExtra="4dp"/>
+
+    <TextView android:id="@+id/serverTv"
+        android:text="" android:textSize="11sp" android:textColor="#3d4a6e"
+        android:gravity="center" android:fontFamily="monospace"
+        android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+</LinearLayout>

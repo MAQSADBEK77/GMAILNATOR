@@ -1,17 +1,13 @@
-name: Build APK
+name: Build APKs
 
 on:
   push:
     branches: [ main ]
-    paths:
-      - 'android/**'
-      - '.github/workflows/build-apk.yml'
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
@@ -20,23 +16,35 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Install Android SDK components
+      - name: Install Android SDK
         run: |
           echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
-            "platforms;android-34" \
-            "build-tools;34.0.0" \
-            "platform-tools" || true
+            "platforms;android-34" "build-tools;34.0.0" "platform-tools" || true
 
-      - name: Build APK
-        working-directory: android
+      - name: Setup Gradle
         run: |
           wget -q https://services.gradle.org/distributions/gradle-8.2-bin.zip -O /tmp/gradle.zip
           unzip -q /tmp/gradle.zip -d /opt/gradle
-          /opt/gradle/gradle-8.2/bin/gradle assembleDebug --no-daemon --stacktrace 2>&1
+          echo "/opt/gradle/gradle-8.2/bin" >> $GITHUB_PATH
 
-      - name: Upload APK
+      - name: Build Gmailnator APK
+        working-directory: android
+        run: gradle assembleDebug --no-daemon
+
+      - name: Build Gmailnator Auto APK
+        working-directory: android-auto
+        run: gradle assembleDebug --no-daemon
+
+      - name: Upload Gmailnator APK
         uses: actions/upload-artifact@v4
         with:
           name: Gmailnator-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
+
+      - name: Upload Gmailnator Auto APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Gmailnator-Auto-APK
+          path: android-auto/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
