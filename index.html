@@ -1,819 +1,548 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gmailnator</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="theme-color" content="#0d0d14"/>
+  <link rel="manifest" href="manifest.json"/>
+  <title>Tempmail</title>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
-    body {
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      background: #0f1117;
-      color: #e2e8f0;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 24px 16px;
+    :root{
+      --bg:#0d0d14;
+      --card:#15182a;
+      --border:#222442;
+      --blue:#5c7cfa;
+      --green:#2f9e44;
+      --gl:#51cf66;
+      --red:#fa5252;
+      --text:#e9ecef;
+      --muted:#5c6380;
+      --r:14px;
     }
 
-    .card {
-      background: #1a1d27;
-      border: 1px solid #2d3148;
-      border-radius: 16px;
-      padding: 28px;
-      width: 100%;
-      max-width: 700px;
-      margin-bottom: 20px;
+    html,body{
+      height:100%;
+      background:var(--bg);
+      color:var(--text);
+      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+      -webkit-tap-highlight-color:transparent;
+      overscroll-behavior:none;
+      touch-action:manipulation;
     }
 
-    h1 {
-      font-size: 1.6rem;
-      font-weight: 700;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 6px;
+    body{
+      display:flex;
+      flex-direction:column;
+      padding:env(safe-area-inset-top,12px) 12px env(safe-area-inset-bottom,12px);
+      gap:10px;
+      min-height:100%;
     }
 
-    h1 span.badge {
-      background: #ea4335;
-      color: #fff;
-      font-size: 0.65rem;
-      padding: 2px 8px;
-      border-radius: 20px;
-      font-weight: 600;
-      letter-spacing: 0.5px;
+    /* ── Info row ─────────────────────────── */
+    .info-row{
+      display:flex;
+      gap:10px;
     }
 
-    .subtitle {
-      color: #64748b;
-      font-size: 0.85rem;
-      margin-bottom: 22px;
+    .info-box{
+      flex:1;
+      background:var(--card);
+      border:1.5px solid var(--border);
+      border-radius:var(--r);
+      padding:10px 14px;
+      cursor:pointer;
+      transition:border-color .15s;
+      -webkit-user-select:none;
+      user-select:none;
+      position:relative;
+      overflow:hidden;
+      min-height:62px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
     }
 
-    label {
-      font-size: 0.8rem;
-      color: #94a3b8;
-      display: block;
-      margin-bottom: 6px;
-      font-weight: 500;
+    .info-box.email-box{flex:1.4}
+    .info-box.active{border-color:var(--blue)}
+    .info-box.code-box.active{border-color:var(--gl)}
+    .info-box:active{opacity:.8}
+
+    .info-label{
+      font-size:.6rem;
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:.8px;
+      color:var(--muted);
+      margin-bottom:4px;
     }
 
-    input[type="text"], input[type="password"] {
-      width: 100%;
-      background: #0f1117;
-      border: 1px solid #2d3148;
-      border-radius: 10px;
-      padding: 11px 14px;
-      color: #e2e8f0;
-      font-size: 0.9rem;
-      outline: none;
-      transition: border-color 0.2s;
+    .info-val{
+      font-size:.82rem;
+      font-weight:700;
+      color:var(--blue);
+      word-break:break-all;
+      line-height:1.2;
     }
 
-    input:focus { border-color: #4f8ef7; }
-
-    .key-row {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
+    .code-box .info-val{
+      font-size:1.8rem;
+      letter-spacing:6px;
+      color:var(--gl);
+      text-align:center;
     }
 
-    .key-row input { flex: 1; }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 7px;
-      padding: 11px 20px;
-      border-radius: 10px;
-      border: none;
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.18s;
-      white-space: nowrap;
+    .info-muted{
+      font-size:.72rem;
+      color:var(--muted);
     }
 
-    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
-
-    .btn-primary {
-      background: linear-gradient(135deg, #4f8ef7, #7c3aed);
-      color: #fff;
-      width: 100%;
-      padding: 14px;
-      font-size: 1rem;
-      border-radius: 12px;
+    /* copy flash */
+    .info-box::after{
+      content:'✓ Nusxalandi';
+      position:absolute;
+      inset:0;
+      background:rgba(47,158,68,.9);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:.9rem;
+      font-weight:800;
+      color:#fff;
+      opacity:0;
+      transition:opacity .15s;
+      border-radius:calc(var(--r) - 1px);
     }
 
-    .btn-primary:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-1px); }
+    .info-box.flash::after{opacity:1}
 
-    .btn-sm {
-      background: #2d3148;
-      color: #94a3b8;
-      padding: 8px 14px;
-      font-size: 0.8rem;
-      border-radius: 8px;
+    /* ── Status ───────────────────────────── */
+    .status{
+      padding:8px 14px;
+      border-radius:10px;
+      font-size:.78rem;
+      font-weight:500;
+      text-align:center;
+      background:var(--card);
+      border:1px solid var(--border);
+      color:var(--muted);
+      transition:all .2s;
+      min-height:36px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
     }
 
-    .btn-sm:hover:not(:disabled) { background: #3a3f60; color: #e2e8f0; }
+    .status.ok {border-color:var(--green);color:var(--gl);background:#0a1f0d}
+    .status.err{border-color:var(--red);color:#ff8787;background:#1f0a0a}
+    .status.info{border-color:var(--blue);color:#91a7ff;background:#0a0e2a}
 
-    .btn-danger-sm {
-      background: #3b1515;
-      color: #f87171;
-      padding: 8px 14px;
-      font-size: 0.8rem;
-      border-radius: 8px;
+    /* ── Buttons ──────────────────────────── */
+    .btns{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      flex:1;
     }
 
-    .btn-danger-sm:hover:not(:disabled) { background: #4f1a1a; }
-
-    .email-display {
-      display: none;
-      background: #0f1117;
-      border: 1px solid #2d3148;
-      border-radius: 12px;
-      padding: 16px 20px;
-      margin-top: 18px;
+    .btn{
+      flex:1;
+      border:none;
+      border-radius:var(--r);
+      font-weight:800;
+      font-size:1rem;
+      cursor:pointer;
+      -webkit-tap-highlight-color:transparent;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      transition:transform .1s,filter .1s;
+      min-height:64px;
+      letter-spacing:.2px;
     }
 
-    .email-display.visible { display: block; }
+    .btn:active{transform:scale(.96)}
+    .btn:disabled{opacity:.4;transform:none}
 
-    .email-label {
-      font-size: 0.75rem;
-      color: #64748b;
-      margin-bottom: 8px;
-      font-weight: 500;
+    .btn-email{background:linear-gradient(135deg,#3b5bdb,#7048e8);color:#fff}
+    .btn-code {background:linear-gradient(135deg,#2f9e44,#37b24d);color:#fff}
+    .btn-new  {background:var(--card);color:var(--muted);border:1.5px solid var(--border)}
+    .btn-new:active{background:#1c1f35}
+
+    .ico{font-size:1.4rem}
+
+    .spin{
+      display:inline-block;
+      width:20px;height:20px;
+      border:3px solid rgba(255,255,255,.25);
+      border-top-color:#fff;
+      border-radius:50%;
+      animation:rot .6s linear infinite;
     }
 
-    .email-value {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
+    @keyframes rot{to{transform:rotate(360deg)}}
+
+    /* ── Auto row ─────────────────────────── */
+    .auto-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:0 2px;
     }
 
-    .email-text {
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: #4f8ef7;
-      word-break: break-all;
+    .auto-label{
+      font-size:.75rem;
+      color:var(--muted);
+      display:flex;
+      align-items:center;
+      gap:6px;
     }
 
-    .type-tag {
-      font-size: 0.7rem;
-      background: #1e2a40;
-      color: #60a5fa;
-      padding: 3px 10px;
-      border-radius: 20px;
-      margin-top: 6px;
-      display: inline-block;
-      border: 1px solid #2d4a70;
+    .cd{font-size:.72rem;color:var(--blue);min-width:20px}
+
+    .toggle{position:relative;width:40px;height:22px}
+    .toggle input{display:none}
+    .track{
+      position:absolute;inset:0;
+      background:var(--border);
+      border-radius:22px;
+      cursor:pointer;
+      transition:.2s;
+    }
+    .track::before{
+      content:'';
+      position:absolute;
+      width:15px;height:15px;
+      background:var(--muted);
+      border-radius:50%;
+      top:3.5px;left:3.5px;
+      transition:.2s;
+    }
+    .toggle input:checked+.track{background:#1d3a6e}
+    .toggle input:checked+.track::before{background:var(--blue);transform:translateX(18px)}
+
+    /* ── Screen flash ─────────────────────── */
+    #flash{
+      position:fixed;inset:0;
+      background:rgba(47,158,68,.3);
+      pointer-events:none;
+      opacity:0;
+      transition:opacity .1s;
+      z-index:999;
     }
 
-    .inbox-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-
-    .inbox-title {
-      font-size: 1rem;
-      font-weight: 600;
-      color: #e2e8f0;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .msg-count {
-      background: #4f8ef7;
-      color: #fff;
-      font-size: 0.7rem;
-      padding: 2px 8px;
-      border-radius: 20px;
-      font-weight: 700;
-    }
-
-    .auto-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.8rem;
-      color: #64748b;
-    }
-
-    .toggle {
-      position: relative;
-      width: 38px;
-      height: 20px;
-    }
-
-    .toggle input { display: none; }
-
-    .toggle-slider {
-      position: absolute;
-      inset: 0;
-      background: #2d3148;
-      border-radius: 20px;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-
-    .toggle-slider::before {
-      content: '';
-      position: absolute;
-      width: 14px;
-      height: 14px;
-      background: #64748b;
-      border-radius: 50%;
-      top: 3px;
-      left: 3px;
-      transition: 0.2s;
-    }
-
-    .toggle input:checked + .toggle-slider { background: #1e3a5f; }
-    .toggle input:checked + .toggle-slider::before { background: #4f8ef7; transform: translateX(18px); }
-
-    .messages-list { display: flex; flex-direction: column; gap: 10px; }
-
-    .message-item {
-      background: #0f1117;
-      border: 1px solid #2d3148;
-      border-radius: 10px;
-      padding: 14px 16px;
-      cursor: pointer;
-      transition: all 0.15s;
-      position: relative;
-    }
-
-    .message-item:hover { border-color: #4f8ef7; background: #12151f; }
-
-    .msg-from {
-      font-size: 0.8rem;
-      color: #60a5fa;
-      font-weight: 600;
-      margin-bottom: 4px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .msg-subject {
-      font-size: 0.9rem;
-      color: #e2e8f0;
-      font-weight: 500;
-      margin-bottom: 4px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .msg-meta {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-    }
-
-    .msg-time {
-      font-size: 0.75rem;
-      color: #475569;
-    }
-
-    .msg-actions { display: flex; gap: 6px; }
-
-    .empty-state {
-      text-align: center;
-      padding: 40px 20px;
-      color: #475569;
-    }
-
-    .empty-state .icon { font-size: 2.5rem; margin-bottom: 10px; }
-    .empty-state p { font-size: 0.85rem; }
-
-    .spinner {
-      display: inline-block;
-      width: 16px;
-      height: 16px;
-      border: 2px solid rgba(255,255,255,0.3);
-      border-top-color: #fff;
-      border-radius: 50%;
-      animation: spin 0.6s linear infinite;
-    }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .toast {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      background: #1e293b;
-      border: 1px solid #334155;
-      border-radius: 10px;
-      padding: 12px 18px;
-      font-size: 0.85rem;
-      color: #e2e8f0;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      z-index: 1000;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-      transform: translateY(80px);
-      opacity: 0;
-      transition: all 0.3s;
-    }
-
-    .toast.show { transform: translateY(0); opacity: 1; }
-    .toast.success { border-color: #22c55e; }
-    .toast.error { border-color: #ef4444; }
-
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.75);
-      z-index: 100;
-      align-items: flex-start;
-      justify-content: center;
-      padding: 24px 16px;
-      overflow-y: auto;
-    }
-
-    .modal-overlay.open { display: flex; }
-
-    .modal {
-      background: #1a1d27;
-      border: 1px solid #2d3148;
-      border-radius: 16px;
-      width: 100%;
-      max-width: 680px;
-      padding: 24px;
-      margin: auto;
-    }
-
-    .modal-head {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      margin-bottom: 16px;
-      gap: 12px;
-    }
-
-    .modal-subject {
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: #fff;
-      line-height: 1.4;
-    }
-
-    .modal-from {
-      font-size: 0.8rem;
-      color: #60a5fa;
-      margin-top: 4px;
-    }
-
-    .modal-time {
-      font-size: 0.75rem;
-      color: #475569;
-      white-space: nowrap;
-    }
-
-    .btn-close {
-      background: #2d3148;
-      border: none;
-      color: #94a3b8;
-      width: 30px;
-      height: 30px;
-      border-radius: 8px;
-      font-size: 1.1rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      transition: background 0.15s;
-    }
-
-    .btn-close:hover { background: #3a3f60; color: #fff; }
-
-    .modal-body {
-      background: #fff;
-      border-radius: 8px;
-      overflow: hidden;
-      min-height: 200px;
-    }
-
-    .modal-body iframe {
-      width: 100%;
-      min-height: 400px;
-      border: none;
-      display: block;
-    }
-
-    .loading-overlay {
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 40px;
-      color: #64748b;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .loading-overlay.show { display: flex; }
-
-    .timer-text {
-      font-size: 0.75rem;
-      color: #475569;
-    }
-
-    .sep { height: 1px; background: #2d3148; margin: 18px 0; }
-
-    .action-row {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
+    #flash.on{opacity:1}
   </style>
 </head>
 <body>
 
-<div class="card">
-  <h1>
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-      <rect width="24" height="24" rx="6" fill="#ea4335"/>
-      <path d="M4 8l8 5 8-5" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
-      <rect x="3" y="7" width="18" height="12" rx="2" stroke="#fff" stroke-width="1.6" fill="none"/>
-    </svg>
-    Gmailnator
-    <span class="badge">TEMP</span>
-  </h1>
-  <p class="subtitle">Vaqtinchalik @gmail.com manzili yarating va xabarlarni kuzating</p>
+<div id="flash"></div>
 
-  <label>RapidAPI Kalit</label>
-  <div class="key-row">
-    <input type="password" id="apiKey" placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" />
-    <button class="btn btn-sm" onclick="saveKey()">Saqlash</button>
+<!-- Email + Code displays -->
+<div class="info-row">
+  <div class="info-box email-box" id="emailBox" onclick="tap('email')">
+    <div class="info-label">Email</div>
+    <div class="info-muted" id="eEmpty">Hali yo'q</div>
+    <div class="info-val" id="eVal" style="display:none"></div>
   </div>
+  <div class="info-box code-box" id="codeBox" onclick="tap('code')">
+    <div class="info-label">Kod</div>
+    <div class="info-muted" id="cEmpty" style="text-align:center">—</div>
+    <div class="info-val" id="cVal" style="display:none"></div>
+  </div>
+</div>
 
-  <div class="sep"></div>
+<!-- Status -->
+<div class="status" id="st">Tayyor</div>
 
-  <button class="btn btn-primary" id="generateBtn" onclick="generateEmail()">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-      <path d="M12 5v14M5 12h14" stroke-linecap="round"/>
-    </svg>
-    Yangi Gmail Manzil Olish
+<!-- Buttons -->
+<div class="btns">
+  <button class="btn btn-email" id="bEmail" onclick="genEmail()">
+    <span class="ico">📧</span> EMAIL OL
   </button>
-
-  <div class="email-display" id="emailDisplay">
-    <div class="email-label">Vaqtinchalik manzil</div>
-    <div class="email-value">
-      <span class="email-text" id="emailText"></span>
-      <button class="btn btn-sm" onclick="copyEmail()">Nusxa</button>
-    </div>
-    <span class="type-tag" id="emailType"></span>
-  </div>
+  <button class="btn btn-code" id="bCode" onclick="getCode()" disabled>
+    <span class="ico">🔍</span> KOD OL
+  </button>
+  <button class="btn btn-new" id="bNew" onclick="newEmail()" disabled>
+    <span class="ico">🔄</span> YANGI EMAIL
+  </button>
 </div>
 
-<div class="card" id="inboxCard" style="display:none;">
-  <div class="inbox-header">
-    <div class="inbox-title">
-      Kiruvchi xabarlar
-      <span class="msg-count" id="msgCount">0</span>
-    </div>
-    <div class="action-row">
-      <div class="auto-row">
-        <label class="toggle" title="Avtomatik yangilash (10 sek)">
-          <input type="checkbox" id="autoRefresh" onchange="toggleAuto()" />
-          <span class="toggle-slider"></span>
-        </label>
-        <span>Avto</span>
-        <span class="timer-text" id="timerText"></span>
-      </div>
-      <button class="btn btn-sm" id="refreshBtn" onclick="loadInbox()">
-        ↻ Yangilash
-      </button>
-    </div>
-  </div>
-
-  <div id="loadingIndicator" class="loading-overlay">
-    <div class="spinner" style="width:24px;height:24px;border-width:3px;"></div>
-    <span style="font-size:0.85rem;color:#64748b;">Yuklanmoqda...</span>
-  </div>
-
-  <div class="messages-list" id="messagesList"></div>
-</div>
-
-<div class="modal-overlay" id="modalOverlay">
-  <div class="modal">
-    <div class="modal-head">
-      <div>
-        <div class="modal-subject" id="modalSubject"></div>
-        <div class="modal-from" id="modalFrom"></div>
-        <div class="modal-time" id="modalTime"></div>
-      </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0;">
-        <button class="btn-close" onclick="closeModal()">✕</button>
-        <button class="btn btn-danger-sm" id="deleteBtn" onclick="deleteMessage()">Ochirish</button>
-      </div>
-    </div>
-    <div class="modal-body">
-      <div id="modalLoading" class="loading-overlay show">
-        <div class="spinner" style="width:24px;height:24px;border-width:3px;border-color:rgba(0,0,0,0.15);border-top-color:#4f8ef7;"></div>
-        <span style="font-size:0.85rem;color:#64748b;">Xabar yuklanmoqda...</span>
-      </div>
-      <iframe id="modalFrame" style="display:none;"></iframe>
-    </div>
+<!-- Auto refresh -->
+<div class="auto-row">
+  <div class="auto-label">
+    <label class="toggle">
+      <input type="checkbox" id="autoChk" onchange="toggleAuto()"/>
+      <span class="track"></span>
+    </label>
+    Avtomatik tekshiruv
+    <span class="cd" id="cdTxt"></span>
   </div>
 </div>
-
-<div class="toast" id="toast"></div>
 
 <script>
-  const BASE = 'https://gmailnator.p.rapidapi.com/api';
-  const HOST = 'gmailnator.p.rapidapi.com';
-  const GMAIL_TYPES = ['public_gmail_plus', 'public_gmail_dot', 'private_gmail_plus', 'private_gmail_dot'];
+const API = 'https://api.mail.tm';
+let token='', email='', lastCode='', seenIds=new Set();
+let cdTimer=null, cdSec=0, busy=false;
+const AUTO=15;
 
-  let currentEmail = '';
-  let currentMsgId = '';
-  let autoTimer = null;
-  let countdown = 0;
-  let countdownTimer = null;
+// ── Service Worker ──────────────────────────────────────
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
 
-  // Load saved key
-  window.onload = () => {
-    const saved = localStorage.getItem('gn_api_key');
-    if (saved) document.getElementById('apiKey').value = saved;
-  };
+// ── Status helper ───────────────────────────────────────
+function st(msg,type=''){
+  const el=document.getElementById('st');
+  el.textContent=msg; el.className='status '+type;
+}
 
-  function getKey() {
-    return document.getElementById('apiKey').value.trim();
+// ── API ─────────────────────────────────────────────────
+async function api(path,opts={}){
+  const h={'Content-Type':'application/json'};
+  if(token) h['Authorization']='Bearer '+token;
+  const r=await fetch(API+path,{...opts,headers:h});
+  if(r.status===204) return {};
+  const d=await r.json();
+  if(!r.ok) throw new Error(d?.['hydra:description']||d?.detail||'HTTP '+r.status);
+  return d;
+}
+
+// ── Clipboard ───────────────────────────────────────────
+async function copy(text){
+  if(navigator.clipboard&&window.isSecureContext){
+    try{await navigator.clipboard.writeText(text);return true}catch{}
+  }
+  const el=document.createElement('textarea');
+  el.value=text;el.style.cssText='position:fixed;opacity:0;top:0;left:0;';
+  document.body.appendChild(el);el.focus();el.select();
+  try{return document.execCommand('copy')}catch{return false}
+  finally{document.body.removeChild(el)}
+}
+
+function flashBox(id){
+  const el=document.getElementById(id);
+  el.classList.add('flash');
+  setTimeout(()=>el.classList.remove('flash'),900);
+}
+
+function flashScreen(){
+  const f=document.getElementById('flash');
+  f.classList.add('on');
+  setTimeout(()=>f.classList.remove('on'),300);
+}
+
+function beep(){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.connect(g);g.connect(ctx.destination);
+    o.frequency.value=880;g.gain.value=0.15;
+    o.start();setTimeout(()=>{o.stop();ctx.close()},200);
+  }catch{}
+}
+
+// ── Tap to copy ─────────────────────────────────────────
+async function tap(type){
+  const text=type==='email'?email:lastCode;
+  if(!text) return;
+  await copy(text);
+  flashBox(type==='email'?'emailBox':'codeBox');
+}
+
+// ── Generate email ──────────────────────────────────────
+async function genEmail(){
+  if(busy) return;
+  busy=true; stopAuto();
+  seenIds.clear(); lastCode='';
+  showCode(null);
+
+  setBtns(true);
+  document.getElementById('bEmail').innerHTML='<span class="spin"></span>';
+  st('Email yaratilmoqda...','info');
+
+  try{
+    const dr=await api('/domains?page=1');
+    const dom=dr['hydra:member']?.[0]?.domain;
+    if(!dom) throw new Error('Domen topilmadi');
+
+    const u=Math.random().toString(36).slice(2,10);
+    const p=Math.random().toString(36).slice(2,18)+'Aa1!';
+    const addr=`${u}@${dom}`;
+
+    await api('/accounts',{method:'POST',body:JSON.stringify({address:addr,password:p})});
+    const tr=await api('/token',{method:'POST',body:JSON.stringify({address:addr,password:p})});
+    token=tr.token; email=addr;
+
+    showEmail(addr);
+    await copy(addr);
+    flashBox('emailBox');
+    st('✓ Email nusxalandi — Telegramga yopish','ok');
+
+    document.getElementById('autoChk').checked=true;
+    startAuto();
+    document.getElementById('bCode').disabled=false;
+    document.getElementById('bNew').disabled=false;
+  }catch(e){
+    st('✗ '+e.message,'err');
+  }finally{
+    busy=false;
+    document.getElementById('bEmail').innerHTML='<span class="ico">📧</span> EMAIL OL';
+    setBtns(false);
+  }
+}
+
+// ── New email (reset) ───────────────────────────────────
+async function newEmail(){
+  stopAuto();
+  document.getElementById('autoChk').checked=false;
+  document.getElementById('bCode').disabled=true;
+  document.getElementById('bNew').disabled=true;
+  showEmail(null);
+  showCode(null);
+  await genEmail();
+}
+
+// ── Extract code ────────────────────────────────────────
+function extract(text){
+  if(!text) return null;
+  const t=text.replace(/<[^>]+>/g,' ').replace(/&nbsp;/g,' ');
+  for(const p of[
+    /(?:login|verif|confirm|code|kod)[^\d]*(\d{4,8})/i,
+    /(\d{5,6})\s*(?:is your|bu sizning)/i,
+    /\b(\d{5,6})\b/,
+    /\b(\d{4})\b/,
+  ]){const m=t.match(p);if(m)return m[1]}
+  return null;
+}
+
+// ── Check inbox ─────────────────────────────────────────
+async function getCode(isAuto=false){
+  if(!token||busy) return;
+  busy=true;
+
+  if(!isAuto){
+    document.getElementById('bCode').disabled=true;
+    document.getElementById('bCode').innerHTML='<span class="spin"></span>';
+    st('Inbox tekshirilmoqda...','info');
   }
 
-  function saveKey() {
-    const k = getKey();
-    if (!k) { showToast('API kalit kiriting!', 'error'); return; }
-    localStorage.setItem('gn_api_key', k);
-    showToast('Kalit saqlandi', 'success');
-  }
+  try{
+    const res=await api('/messages?page=1');
+    const msgs=res['hydra:member']||[];
 
-  function headers() {
-    return {
-      'Content-Type': 'application/json',
-      'x-rapidapi-host': HOST,
-      'x-rapidapi-key': getKey(),
-    };
-  }
+    if(!msgs.length){
+      st('📭 Xabar hali kelmadi — kutilmoqda','');
+      return;
+    }
 
-  async function generateEmail() {
-    const key = getKey();
-    if (!key) { showToast('Avval API kalit kiriting!', 'error'); return; }
+    const unseen=msgs.filter(m=>!seenIds.has(m.id));
+    const target=unseen.length?unseen[0]:msgs[0];
+    const full=await api('/messages/'+target.id);
+    seenIds.add(target.id);
 
-    const btn = document.getElementById('generateBtn');
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span> Yaratilmoqda...';
+    const raw=full.text||(full.html?.join(' ')?? '');
+    const code=extract(raw);
 
-    try {
-      const res = await fetch(`${BASE}/emails/generate`, {
-        method: 'POST',
-        headers: headers(),
-        body: JSON.stringify({ type: GMAIL_TYPES }),
-      });
-      const data = await res.json();
-
-      if (!res.ok || data.status !== 'success') {
-        throw new Error(data.message || 'Xatolik yuz berdi');
-      }
-
-      currentEmail = data.email;
-      document.getElementById('emailText').textContent = currentEmail;
-      document.getElementById('emailType').textContent = typeLabel(data.type);
-      document.getElementById('emailDisplay').classList.add('visible');
-      document.getElementById('inboxCard').style.display = 'block';
-
-      showToast('Gmail manzil yaratildi!', 'success');
-
-      // Stop old auto-refresh and start fresh
+    if(code){
+      lastCode=code;
+      showCode(code);
+      await copy(code);
+      flashBox('codeBox');
+      flashScreen();
+      beep();
+      st('✓ Kod: '+code+' — Telegramga yopish','ok');
+      document.getElementById('autoChk').checked=false;
       stopAuto();
-      document.getElementById('autoRefresh').checked = false;
-      await loadInbox();
-
-    } catch (e) {
-      showToast(e.message, 'error');
-    } finally {
-      btn.disabled = false;
-      btn.innerHTML = `
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-          <path d="M12 5v14M5 12h14" stroke-linecap="round"/>
-        </svg>
-        Yangi Gmail Manzil Olish`;
+    }else{
+      st('Xabar keldi — kod topilmadi ('+full.from?.address+')','info');
+    }
+  }catch(e){
+    if(!isAuto) st('✗ '+e.message,'err');
+  }finally{
+    busy=false;
+    if(!isAuto){
+      document.getElementById('bCode').disabled=false;
+      document.getElementById('bCode').innerHTML='<span class="ico">🔍</span> KOD OL';
     }
   }
+}
 
-  async function loadInbox() {
-    if (!currentEmail) return;
+// ── UI helpers ──────────────────────────────────────────
+function showEmail(addr){
+  document.getElementById('eEmpty').style.display=addr?'none':'block';
+  const v=document.getElementById('eVal');
+  v.textContent=addr||''; v.style.display=addr?'block':'none';
+  document.getElementById('emailBox').classList.toggle('active',!!addr);
+}
 
-    const loading = document.getElementById('loadingIndicator');
-    const list = document.getElementById('messagesList');
-    const btn = document.getElementById('refreshBtn');
+function showCode(code){
+  document.getElementById('cEmpty').style.display=code?'none':'block';
+  const v=document.getElementById('cVal');
+  v.textContent=code||''; v.style.display=code?'block':'none';
+  document.getElementById('codeBox').classList.toggle('active',!!code);
+}
 
-    loading.classList.add('show');
-    list.innerHTML = '';
-    btn.disabled = true;
-
-    try {
-      const res = await fetch(`${BASE}/inbox/`, {
-        method: 'POST',
-        headers: headers(),
-        body: JSON.stringify({ email: currentEmail, limit: 20 }),
-      });
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data.message || 'Inbox yuklanmadi');
-
-      const msgs = data.messages || [];
-      document.getElementById('msgCount').textContent = msgs.length;
-
-      if (msgs.length === 0) {
-        list.innerHTML = `
-          <div class="empty-state">
-            <div class="icon">📭</div>
-            <p>Hozircha xabar yo'q</p>
-            <p style="margin-top:6px;font-size:0.75rem;">Xabar kelganda avtomatik yangilanadi</p>
-          </div>`;
-      } else {
-        msgs.forEach(msg => {
-          const el = document.createElement('div');
-          el.className = 'message-item';
-          el.innerHTML = `
-            <div class="msg-from">${escHtml(msg.from)}</div>
-            <div class="msg-subject">${escHtml(msg.subject)}</div>
-            <div class="msg-meta">
-              <span class="msg-time">${escHtml(msg.time_ago)}</span>
-              <div class="msg-actions">
-                <button class="btn btn-danger-sm" onclick="event.stopPropagation(); confirmDelete('${escAttr(msg.id)}')" title="O'chirish">✕</button>
-              </div>
-            </div>`;
-          el.onclick = () => openMessage(msg);
-          list.appendChild(el);
-        });
-      }
-    } catch (e) {
-      list.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>${escHtml(e.message)}</p></div>`;
-    } finally {
-      loading.classList.remove('show');
-      btn.disabled = false;
-    }
-  }
-
-  async function openMessage(msg) {
-    currentMsgId = msg.id;
-    document.getElementById('modalSubject').textContent = msg.subject;
-    document.getElementById('modalFrom').textContent = 'Kim: ' + msg.from;
-    document.getElementById('modalTime').textContent = msg.time_ago;
-    document.getElementById('modalFrame').style.display = 'none';
-    document.getElementById('modalLoading').classList.add('show');
-    document.getElementById('modalOverlay').classList.add('open');
-
-    try {
-      const res = await fetch(`${BASE}/inbox/${encodeURIComponent(msg.id)}`, {
-        headers: { 'x-rapidapi-host': HOST, 'x-rapidapi-key': getKey() },
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Yuklanmadi');
-
-      const frame = document.getElementById('modalFrame');
-      frame.style.display = 'block';
-      frame.srcdoc = data.content || '<p style="padding:20px;color:#555;">Kontent mavjud emas</p>';
-    } catch (e) {
-      document.getElementById('modalFrame').srcdoc = `<p style="padding:20px;color:#ef4444;">${e.message}</p>`;
-      document.getElementById('modalFrame').style.display = 'block';
-    } finally {
-      document.getElementById('modalLoading').classList.remove('show');
-    }
-  }
-
-  async function deleteMessage() {
-    if (!currentMsgId) return;
-    const btn = document.getElementById('deleteBtn');
-    btn.disabled = true;
-    btn.textContent = '...';
-
-    try {
-      const res = await fetch(`${BASE}/inbox/${encodeURIComponent(currentMsgId)}`, {
-        method: 'DELETE',
-        headers: { 'x-rapidapi-host': HOST, 'x-rapidapi-key': getKey() },
-      });
-      const data = await res.json();
-      if (!res.ok && !data.success) throw new Error(data.error || data.message || 'Xatolik');
-      showToast("Xabar o'chirildi", 'success');
-      closeModal();
-      await loadInbox();
-    } catch (e) {
-      showToast(e.message, 'error');
-    } finally {
-      btn.disabled = false;
-      btn.textContent = "Ochirish";
-    }
-  }
-
-  async function confirmDelete(msgId) {
-    if (!confirm("Bu xabarni o'chirishni tasdiqlaysizmi?")) return;
-    try {
-      const res = await fetch(`${BASE}/inbox/${encodeURIComponent(msgId)}`, {
-        method: 'DELETE',
-        headers: { 'x-rapidapi-host': HOST, 'x-rapidapi-key': getKey() },
-      });
-      const data = await res.json();
-      if (!res.ok && !data.success) throw new Error(data.error || data.message);
-      showToast("O'chirildi", 'success');
-      await loadInbox();
-    } catch (e) {
-      showToast(e.message, 'error');
-    }
-  }
-
-  function closeModal() {
-    document.getElementById('modalOverlay').classList.remove('open');
-    document.getElementById('modalFrame').srcdoc = '';
-    currentMsgId = '';
-  }
-
-  function copyEmail() {
-    if (!currentEmail) return;
-    navigator.clipboard.writeText(currentEmail)
-      .then(() => showToast('Nusxa olindi!', 'success'))
-      .catch(() => showToast('Nusxa olishda xatolik', 'error'));
-  }
-
-  function toggleAuto() {
-    if (document.getElementById('autoRefresh').checked) {
-      startAuto();
-    } else {
-      stopAuto();
-    }
-  }
-
-  function startAuto() {
-    stopAuto();
-    countdown = 10;
-    updateTimerText();
-    countdownTimer = setInterval(() => {
-      countdown--;
-      updateTimerText();
-      if (countdown <= 0) {
-        countdown = 10;
-        loadInbox();
-      }
-    }, 1000);
-  }
-
-  function stopAuto() {
-    if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
-    document.getElementById('timerText').textContent = '';
-  }
-
-  function updateTimerText() {
-    document.getElementById('timerText').textContent = countdown > 0 ? `${countdown}s` : '';
-  }
-
-  function typeLabel(t) {
-    const map = {
-      public_gmail_plus: '+ Plus adreslash',
-      public_gmail_dot: '. Nuqta triki',
-      private_gmail_plus: '+ Private plus',
-      private_gmail_dot: '. Private nuqta',
-    };
-    return map[t] || t;
-  }
-
-  function escHtml(s) {
-    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-
-  function escAttr(s) {
-    return String(s || '').replace(/'/g, "\\'");
-  }
-
-  function showToast(msg, type = '') {
-    const t = document.getElementById('toast');
-    t.textContent = type === 'success' ? '✓ ' + msg : type === 'error' ? '✗ ' + msg : msg;
-    t.className = 'toast show ' + type;
-    setTimeout(() => { t.className = 'toast'; }, 3000);
-  }
-
-  // Close modal on overlay click
-  document.getElementById('modalOverlay').addEventListener('click', function(e) {
-    if (e.target === this) closeModal();
+function setBtns(disabled){
+  ['bEmail','bCode','bNew'].forEach(id=>{
+    if(id!=='bCode'&&id!=='bNew') document.getElementById(id).disabled=disabled;
   });
+}
+
+// ── Auto refresh ─────────────────────────────────────────
+function toggleAuto(){
+  document.getElementById('autoChk').checked?startAuto():stopAuto();
+}
+
+function startAuto(){
+  stopAuto();
+  cdSec=AUTO; updateCd();
+  cdTimer=setInterval(async()=>{
+    cdSec--;
+    if(cdSec<=0){cdSec=AUTO;await getCode(true)}
+    updateCd();
+  },1000);
+}
+
+function stopAuto(){
+  if(cdTimer){clearInterval(cdTimer);cdTimer=null}
+  cdSec=0; updateCd();
+}
+
+function updateCd(){
+  document.getElementById('cdTxt').textContent=cdSec>0?cdSec+'s':'';
+}
+
+// ── State persistence ───────────────────────────────────
+// localStorage'ga saqlash (sahifa yopib qayta ochilganda)
+function saveState(){
+  if(email) localStorage.setItem('tm_email',email);
+  if(token) localStorage.setItem('tm_token',token);
+  if(lastCode) localStorage.setItem('tm_code',lastCode);
+}
+
+function loadState(){
+  const e=localStorage.getItem('tm_email');
+  const t=localStorage.getItem('tm_token');
+  const c=localStorage.getItem('tm_code');
+  if(e&&t){
+    email=e; token=t;
+    showEmail(e);
+    document.getElementById('bCode').disabled=false;
+    document.getElementById('bNew').disabled=false;
+    st('Avvalgi email yuklandi','info');
+  }
+  if(c){lastCode=c;showCode(c)}
+}
+
+window.addEventListener('beforeunload',saveState);
+loadState();
 </script>
 </body>
 </html>

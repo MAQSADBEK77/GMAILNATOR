@@ -1,0 +1,19 @@
+{
+  "name": "Tempmail",
+  "short_name": "Tempmail",
+  "description": "Vaqtinchalik email va kod olish",
+  "start_url": "/GMAILNATOR/",
+  "scope": "/GMAILNATOR/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d0d14",
+  "theme_color": "#0d0d14",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='32' fill='%233b5bdb'/><path d='M32 64l64 40 64-40' stroke='white' stroke-width='12' stroke-linecap='round' fill='none'/><rect x='24' y='56' width='144' height='96' rx='12' stroke='white' stroke-width='10' fill='none'/></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
