@@ -220,9 +220,12 @@ const AUTO_SEC = 15;
 let apiKey='', curEmail='', lastCode='', seenIds=new Set();
 let cdTimer=null, cdSec=0, busy=false;
 
-// ── Service Worker ───────────────────────────────
+// SW cache'ni tozalash va o'chirish
 if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('sw.js').catch(()=>{});
+  navigator.serviceWorker.getRegistrations().then(regs => {
+    regs.forEach(r => r.unregister());
+  });
+  caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
 }
 
 // ── Init ─────────────────────────────────────────
