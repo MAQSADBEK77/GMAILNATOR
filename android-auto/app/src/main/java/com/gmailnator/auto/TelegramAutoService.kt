@@ -30,9 +30,15 @@ class TelegramAutoService : AccessibilityService() {
     private val EMAIL_KW = listOf(
         // English
         "email", "e-mail", "login email", "choose a login", "your email",
+        "add email", "valid email", "protect your account",
         // Russian
-        "почт", "email для входа", "выберите email", "введите email", "ваш email",
+        "почт",            // почту / почты / почтой
+        "электронной",     // Адрес электронной почты
+        "укажите",         // Укажите почту для входа
+        "введите email", "выберите email", "ваш email",
         // Uzbek
+        "emailingiz",      // Emailingiz (field label)
+        "emailini",        // Login emailini kiriting
         "pochta", "elektron", "email kiriting"
     )
 
