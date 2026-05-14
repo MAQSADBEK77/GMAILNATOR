@@ -118,7 +118,7 @@ class TelegramAutoService : AccessibilityService() {
 
             val field = findEditableEmpty(nodes)
             if (field != null) {
-                val h = field.hashCode()
+                val h = System.identityHashCode(field)
                 if (h != lastEmailFieldHash) {
                     lastEmailFieldHash = h
                     handleEmail(field, root)
@@ -153,17 +153,26 @@ class TelegramAutoService : AccessibilityService() {
                 val email = Api.generateEmail()
                 curEmail = email
                 handler.post {
-                    setText(field, email)
+                    // Node recycled bo'lishi mumkin — qaytadan topamiz
+                    val r = rootInActiveWindow
+                    val freshField = r?.let { allNodes(it) }?.let { nodes ->
+                        nodes.firstOrNull { it.isEditable && it.isEnabled && it.text.isNullOrEmpty() }
+                        ?: nodes.firstOrNull { it.isEditable && it.isEnabled }
+                    }
+                    if (freshField != null) {
+                        setText(freshField, email)
+                    }
                     clipboard(email)
                     showToast("✓ $email")
                     handler.postDelayed({
                         rootInActiveWindow?.let { clickNext(it) }
-                    }, 700)
+                    }, 800)
                 }
             } catch (e: Exception) {
                 handler.post {
                     state = State.IDLE
-                    showToast("✗ Server: ${e.message}")
+                    lastEmailFieldHash = 0
+                    showToast("✗ ${e.message}")
                 }
             }
         }
