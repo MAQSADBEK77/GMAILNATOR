@@ -6,7 +6,10 @@
       "Bash(npm install *)",
       "PowerShell(try { $r = Invoke-WebRequest -Uri \"https://api.mail.tm/domains\" -UseBasicParsing; Write-Output $r.StatusCode; Write-Output $r.Content.Substring\\(0,300\\) } catch { Write-Output $_.Exception.Message })",
       "Bash(node -e ' *)",
-      "PowerShell(Start-Process \"c:\\\\Users\\\\MAQSADBEK\\\\Music\\\\GMAILNATOR\\\\start.bat\")"
+      "PowerShell(Start-Process \"c:\\\\Users\\\\MAQSADBEK\\\\Music\\\\GMAILNATOR\\\\start.bat\")",
+      "Bash(curl -s -X POST https://gmailnator.p.rapidapi.com/api/inbox -H 'Content-Type: application/json' -H 'x-rapidapi-host: gmailnator.p.rapidapi.com' -H 'x-rapidapi-key: 03968cdfa2mshe3451f14a06bd97p1f11a0jsn63618796d7f7' -d '{\"email\":\"ma.r.ionano.nuevo71@gmail.com\",\"limit\":5}' -w '\\\\nSTATUS:%{http_code}')",
+      "Bash(python3 -c 'import urllib.parse,sys;print\\(urllib.parse.quote\\(sys.argv[1]\\)\\)' eyJpdiI6IldLaGJCZlJpU2MwWCsxQXcyU29IN0E9PSIsInZhbHVlIjoia1NtSHBDNnZLbXhBM3ZrdUVHL2c5bzhBcGc0ZlpDUE1LQzlBMlhDQlU0bWMzVi9oWC9sdFl0VmhRTGwwQU9ETms5QnU4V2hNbFc2djVrcHpFUkJXQlNMZHdtME54aU1aVkJGeUt4UnVCSUk9IiwibWFjIjoiZjRlOTIxN2I1YzkwMmJlYTQ4MjU5NWM2MTEyNTUwNmJhZjAxYzM4ZGFiZjIwY2IyMTEwYjRhYjQ2MTExMWM0MiIsInRhZyI6IiJ9)",
+      "Bash(curl -s https://gmailnator.p.rapidapi.com/api/inbox/__CMDSUB_OUTPUT__ -H 'x-rapidapi-host: gmailnator.p.rapidapi.com' -H 'x-rapidapi-key: 03968cdfa2mshe3451f14a06bd97p1f11a0jsn63618796d7f7' -w '\\\\nSTATUS:%{http_code}')"
     ]
   }
 }
