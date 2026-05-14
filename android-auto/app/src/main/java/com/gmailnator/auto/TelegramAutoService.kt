@@ -118,7 +118,7 @@ class TelegramAutoService : AccessibilityService() {
 
             // Kengaytirilgan field qidirish
             val field = findEmailField(nodes)
-            val dbg = if (field != null) field.className?.substringAfterLast('.') ?: "found" else "NULL"
+            val dbg = if (field != null) field.className?.toString()?.substringAfterLast('.') ?: "found" else "NULL"
             showToast("Email ekran ✓ | field: $dbg | nodes: ${nodes.size}")
 
             if (field != null) {
