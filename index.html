@@ -389,7 +389,7 @@ async function getCode(isAuto=false){
   }
 
   try{
-    const res=await gn('POST','/inbox/',{email:curEmail,limit:20});
+    const res=await gn('POST','/inbox',{email:curEmail,limit:20});
     const msgs=res.messages||[];
 
     if(!msgs.length){
