@@ -65,24 +65,43 @@ class TelegramAutoService : AccessibilityService() {
 
     // ── Email maydonini topish ───────────────────────────
     private fun findEmailField(root: AccessibilityNodeInfo): AccessibilityNodeInfo? {
-        return allNodes(root).firstOrNull { node ->
-            node.isEditable && node.isEnabled &&
-            listOf("email", "e-mail", "pochta", "mail").any { kw ->
-                node.hintText?.toString()?.lowercase()?.contains(kw) == true ||
-                node.text?.toString()?.lowercase()?.contains(kw) == true ||
-                node.contentDescription?.toString()?.lowercase()?.contains(kw) == true
+        val emailKw = listOf("email", "e-mail", "pochta", "mail", "login email", "choose")
+
+        // Ekranda "email" so'zi bormi? (Telegram "Choose a login email" yozuvi)
+        val screenHasEmail = allNodes(root).any { n ->
+            emailKw.any { kw ->
+                n.text?.toString()?.lowercase()?.contains(kw) == true ||
+                n.contentDescription?.toString()?.lowercase()?.contains(kw) == true
             }
+        }
+
+        if (!screenHasEmail) return null
+
+        // Birinchi bo'sh tahrirlash maydonini qaytar
+        return allNodes(root).firstOrNull { n ->
+            n.isEditable && n.isEnabled && n.text.isNullOrEmpty()
         }
     }
 
     // ── Kod maydonini topish ─────────────────────────────
     private fun findCodeField(root: AccessibilityNodeInfo): AccessibilityNodeInfo? {
-        return allNodes(root).firstOrNull { node ->
-            node.isEditable && node.isEnabled &&
-            (node.hintText?.toString()?.let { h ->
-                listOf("code", "kod", "otp", "verif", "number", "raqam").any { h.lowercase().contains(it) }
-            } == true ||
-            node.inputType and android.text.InputType.TYPE_CLASS_NUMBER != 0)
+        val codeKw = listOf("code", "kod", "otp", "verif", "digit", "raqam", "enter code")
+
+        // Ekranda "code" so'zi bormi?
+        val screenHasCode = allNodes(root).any { n ->
+            codeKw.any { kw ->
+                n.text?.toString()?.lowercase()?.contains(kw) == true ||
+                n.contentDescription?.toString()?.lowercase()?.contains(kw) == true
+            }
+        }
+
+        return allNodes(root).firstOrNull { n ->
+            n.isEditable && n.isEnabled && n.text.isNullOrEmpty() &&
+            (screenHasCode ||
+             n.hintText?.toString()?.let { h ->
+                 codeKw.any { h.lowercase().contains(it) }
+             } == true ||
+             n.inputType and android.text.InputType.TYPE_CLASS_NUMBER != 0)
         }
     }
 
