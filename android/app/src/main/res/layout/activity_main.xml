@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:gravity="center"
+    android:background="#0d0d14">
+
+    <TextView
+        android:text="📧"
+        android:textSize="52sp"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"/>
+
+    <TextView
+        android:text="Gmailnator"
+        android:textSize="26sp"
+        android:textStyle="bold"
+        android:textColor="#e9ecef"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="6dp"/>
+
+    <TextView
+        android:text="Telegram uchun @gmail.com"
+        android:textSize="13sp"
+        android:textColor="#5c6380"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="36dp"/>
+
+    <TextView
+        android:text="RapidAPI Kalit"
+        android:textSize="12sp"
+        android:textColor="#94a3b8"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="6dp"/>
+
+    <EditText
+        android:id="@+id/keyInput"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="@drawable/bg_input"
+        android:padding="12dp"
+        android:textColor="#e9ecef"
+        android:textColorHint="#475569"
+        android:hint="Kalitni kiriting..."
+        android:inputType="textPassword"
+        android:fontFamily="monospace"
+        android:textSize="13sp"
+        android:layout_marginBottom="10dp"/>
+
+    <Button
+        android:id="@+id/saveBtn"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="Saqlash"
+        android:textColor="#fff"
+        android:textStyle="bold"
+        android:background="@drawable/bg_btn_secondary"
+        android:layout_marginBottom="20dp"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#222442"
+        android:layout_marginBottom="20dp"/>
+
+    <Button
+        android:id="@+id/floatBtn"
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:text="📧  Floating Panel Yoqish"
+        android:textColor="#fff"
+        android:textStyle="bold"
+        android:textSize="16sp"
+        android:background="@drawable/bg_btn_primary"
+        android:layout_marginBottom="16dp"/>
+
+    <TextView
+        android:id="@+id/statusTv"
+        android:text="Avval API kalitni kiriting va saqlang"
+        android:textSize="12sp"
+        android:textColor="#5c6380"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+</LinearLayout>
