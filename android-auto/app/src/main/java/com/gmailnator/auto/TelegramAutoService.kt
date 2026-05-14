@@ -16,150 +16,137 @@ class TelegramAutoService : AccessibilityService() {
     private val executor = Executors.newSingleThreadExecutor()
     private val handler  = Handler(Looper.getMainLooper())
     private var pollJob: Runnable? = null
-    private var lastEmailFieldId = ""
+    private var lastEmailFieldHash = 0
+
+    // ── Telegram paketlari ───────────────────────────────
+    private val TELEGRAM_PKGS = setOf(
+        "org.telegram.messenger",
+        "org.telegram.messenger.web",
+        "org.telegram.plus",
+        "org.thunderdog.challegram"   // Telegram X
+    )
+
+    // ── Email ekrani kalit so'zlari (EN + RU + UZ) ───────
+    private val EMAIL_KW = listOf(
+        // English
+        "email", "e-mail", "login email", "choose a login", "your email",
+        // Russian
+        "почт", "email для входа", "выберите email", "введите email", "ваш email",
+        // Uzbek
+        "pochta", "elektron", "email kiriting"
+    )
+
+    // ── Kod ekrani kalit so'zlari (EN + RU + UZ) ─────────
+    private val CODE_KW = listOf(
+        // English
+        "code", "verification", "login code", "enter code", "digit", "otp", "confirm",
+        // Russian
+        "код", "введите код", "подтвер", "проверочн", "код подтверждения",
+        // Uzbek
+        "kod", "tasdiqlash", "kodni", "kiriting"
+    )
+
+    // ── "Next" tugma matnlari (EN + RU + UZ) ─────────────
+    private val NEXT_TEXTS = listOf(
+        // English
+        "Next", "Continue", "Done", "OK", "Send", "Submit", "Verify", "Confirm",
+        // Russian
+        "Далее", "Продолжить", "Готово", "ОК", "Отправить", "Подтвердить",
+        // Uzbek
+        "Keyingi", "Davom", "Tasdiqlash", "Yuborish", "OK", "Bajarish"
+    )
 
     override fun onServiceConnected() {
         super.onServiceConnected()
-        showToast("Gmailnator Auto: faol")
+        showToast("Gmailnator Auto: faol ✓")
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
         val pkg = event.packageName?.toString() ?: return
-        if (!isTelegram(pkg)) return
-
-        // Debounce — har event'da emas, 300ms keyin tekshirish
-        handler.removeCallbacksAndMessages("check")
-        handler.postAtTime({ checkScreen() }, "check", SystemClock.uptimeMillis() + 300)
+        if (pkg !in TELEGRAM_PKGS) return
+        handler.removeCallbacksAndMessages("chk")
+        handler.postAtTime({ checkScreen() }, "chk", SystemClock.uptimeMillis() + 400)
     }
-
-    private fun isTelegram(pkg: String) = pkg in listOf(
-        "org.telegram.messenger",
-        "org.telegram.messenger.web",
-        "org.telegram.plus",
-        "org.thunderdog.challegram"
-    )
 
     private fun checkScreen() {
         val root = rootInActiveWindow ?: return
+        val nodes = allNodes(root)
+        val texts = nodes.mapNotNull {
+            (it.text?.toString() ?: it.contentDescription?.toString())?.lowercase()
+        }
 
-        // ── Email maydoni ────────────────────────────────
-        val emailField = findEmailField(root)
-        if (emailField != null) {
-            val fieldId = emailField.viewIdResourceName ?: emailField.hashCode().toString()
-            if (state == State.IDLE && fieldId != lastEmailFieldId) {
-                lastEmailFieldId = fieldId
-                handleEmail(emailField, root)
+        // ── Email ekrani ─────────────────────────────────
+        val isEmailScreen = EMAIL_KW.any { kw -> texts.any { it.contains(kw) } }
+        if (isEmailScreen && state == State.IDLE) {
+            val field = findEditableEmpty(nodes)
+            if (field != null) {
+                val h = field.hashCode()
+                if (h != lastEmailFieldHash) {
+                    lastEmailFieldHash = h
+                    handleEmail(field, root)
+                }
             }
             return
         }
 
-        // ── Kod maydoni ──────────────────────────────────
-        if (state == State.EMAIL_PASTED || state == State.POLLING) {
-            val codeField = findCodeField(root)
-            if (codeField != null && state == State.EMAIL_PASTED) {
-                state = State.POLLING
-                startPolling(codeField)
-            }
+        // ── Kod ekrani ───────────────────────────────────
+        val isCodeScreen = CODE_KW.any { kw -> texts.any { it.contains(kw) } }
+        if (isCodeScreen && state == State.EMAIL_PASTED) {
+            state = State.POLLING
+            startPolling()
+        }
+
+        // ── Email ekrani ko'rinmasa, state reset ─────────
+        if (!isEmailScreen && !isCodeScreen && state == State.IDLE) {
+            lastEmailFieldHash = 0
         }
     }
 
-    // ── Email maydonini topish ───────────────────────────
-    private fun findEmailField(root: AccessibilityNodeInfo): AccessibilityNodeInfo? {
-        val emailKw = listOf("email", "e-mail", "pochta", "mail", "login email", "choose")
+    // ── Bo'sh tahrirlash maydoni ─────────────────────────
+    private fun findEditableEmpty(nodes: List<AccessibilityNodeInfo>) =
+        nodes.firstOrNull { it.isEditable && it.isEnabled && it.text.isNullOrEmpty() }
 
-        // Ekranda "email" so'zi bormi? (Telegram "Choose a login email" yozuvi)
-        val screenHasEmail = allNodes(root).any { n ->
-            emailKw.any { kw ->
-                n.text?.toString()?.lowercase()?.contains(kw) == true ||
-                n.contentDescription?.toString()?.lowercase()?.contains(kw) == true
-            }
-        }
-
-        if (!screenHasEmail) return null
-
-        // Birinchi bo'sh tahrirlash maydonini qaytar
-        return allNodes(root).firstOrNull { n ->
-            n.isEditable && n.isEnabled && n.text.isNullOrEmpty()
-        }
-    }
-
-    // ── Kod maydonini topish ─────────────────────────────
-    private fun findCodeField(root: AccessibilityNodeInfo): AccessibilityNodeInfo? {
-        val codeKw = listOf("code", "kod", "otp", "verif", "digit", "raqam", "enter code")
-
-        // Ekranda "code" so'zi bormi?
-        val screenHasCode = allNodes(root).any { n ->
-            codeKw.any { kw ->
-                n.text?.toString()?.lowercase()?.contains(kw) == true ||
-                n.contentDescription?.toString()?.lowercase()?.contains(kw) == true
-            }
-        }
-
-        return allNodes(root).firstOrNull { n ->
-            n.isEditable && n.isEnabled && n.text.isNullOrEmpty() &&
-            (screenHasCode ||
-             n.hintText?.toString()?.let { h ->
-                 codeKw.any { h.lowercase().contains(it) }
-             } == true ||
-             n.inputType and android.text.InputType.TYPE_CLASS_NUMBER != 0)
-        }
-    }
-
-    // ── Email yarat va paste qil ─────────────────────────
+    // ── Email yarat va paste ─────────────────────────────
     private fun handleEmail(field: AccessibilityNodeInfo, root: AccessibilityNodeInfo) {
-        state = State.EMAIL_PASTED  // preventive
+        state = State.EMAIL_PASTED
         showToast("Email yaratilmoqda...")
-
         executor.execute {
             try {
                 val email = Api.generateEmail()
                 curEmail = email
-
                 handler.post {
-                    // Clipboard'ga ham qo'yish
-                    clipboard(email)
-
-                    // Maydonni tozalab email yozish
                     setText(field, email)
-
-                    showToast("✓ Email paste: $email")
-
-                    // 600ms kutib Next bosish
+                    clipboard(email)
+                    showToast("✓ $email")
                     handler.postDelayed({
-                        val r = rootInActiveWindow ?: return@postDelayed
-                        clickNext(r)
-                    }, 600)
+                        rootInActiveWindow?.let { clickNext(it) }
+                    }, 700)
                 }
             } catch (e: Exception) {
                 handler.post {
                     state = State.IDLE
-                    showToast("✗ ${e.message}")
+                    showToast("✗ Server: ${e.message}")
                 }
             }
         }
     }
 
     // ── Kod polling ──────────────────────────────────────
-    private fun startPolling(codeField: AccessibilityNodeInfo) {
+    private fun startPolling() {
         stopPolling()
         showToast("Kod kutilmoqda...")
-
+        var attempts = 0
         pollJob = object : Runnable {
-            var attempts = 0
             override fun run() {
-                attempts++
-                if (attempts > 60) {   // 5 daqiqa timeout
-                    handler.post { state = State.IDLE; showToast("Timeout — qayta urinib ko'ring") }
+                if (++attempts > 72) {  // 6 daqiqa
+                    handler.post { state = State.IDLE; showToast("Timeout") }
                     return
                 }
                 executor.execute {
                     try {
                         val msgs = Api.getInbox(curEmail)
                         if (msgs.isEmpty()) { handler.postDelayed(this, 5000); return@execute }
-
-                        val content = Api.getMessage(msgs[0].id)
-                        val code    = Api.extractCode(content)
-
+                        val code = Api.extractCode(Api.getMessage(msgs[0].id))
                         if (code != null) {
                             handler.post { pasteCode(code) }
                         } else {
@@ -171,7 +158,7 @@ class TelegramAutoService : AccessibilityService() {
                 }
             }
         }
-        handler.postDelayed(pollJob!!, 4000)
+        handler.postDelayed(pollJob!!, 5000)
     }
 
     private fun stopPolling() {
@@ -181,61 +168,61 @@ class TelegramAutoService : AccessibilityService() {
 
     // ── Kodni paste + Next ───────────────────────────────
     private fun pasteCode(code: String) {
-        showToast("✓ Kod topildi: $code")
+        showToast("✓ Kod: $code")
         clipboard(code)
+        val root = rootInActiveWindow ?: run { resetState(); return }
+        val field = findEditableEmpty(allNodes(root))
+        if (field != null) setText(field, code)
+        handler.postDelayed({
+            rootInActiveWindow?.let { clickNext(it) }
+        }, 600)
+        handler.postDelayed({ resetState() }, 2000)
+    }
 
-        val root = rootInActiveWindow
-        val codeField = root?.let { findCodeField(it) }
-
-        if (codeField != null) {
-            setText(codeField, code)
-            handler.postDelayed({
-                val r = rootInActiveWindow ?: return@postDelayed
-                clickNext(r)
-            }, 600)
-        }
-
+    private fun resetState() {
         state = State.IDLE
         curEmail = ""
-        lastEmailFieldId = ""
+        lastEmailFieldHash = 0
         stopPolling()
     }
 
-    // ── "Next" / "Davom" tugmasini bosish ───────────────
+    // ── Next tugmasini bosish ────────────────────────────
     private fun clickNext(root: AccessibilityNodeInfo) {
-        // Matn bo'yicha qidirish
-        val candidates = listOf(
-            "Next", "Далее", "Continue", "Done", "OK",
-            "Keyingi", "Davom", "Send", "Отправить", "Verify"
-        )
-        for (text in candidates) {
-            val nodes = root.findAccessibilityNodeInfosByText(text)
-            val btn = nodes.firstOrNull { it.isClickable }
-            if (btn != null) {
-                btn.performAction(AccessibilityNodeInfo.ACTION_CLICK)
-                return
+        val nodes = allNodes(root)
+
+        // 1. Matn bo'yicha
+        for (text in NEXT_TEXTS) {
+            val found = nodes.firstOrNull { n ->
+                n.isClickable && n.isEnabled &&
+                (n.text?.toString()?.equals(text, ignoreCase = true) == true ||
+                 n.contentDescription?.toString()?.equals(text, ignoreCase = true) == true)
             }
+            if (found != null) { found.performAction(AccessibilityNodeInfo.ACTION_CLICK); return }
         }
 
-        // IME "Done/Next" action
-        val focused = allNodes(root).firstOrNull { it.isEditable && it.isFocused }
-        focused?.performAction(AccessibilityNodeInfo.ACTION_NEXT_AT_MOVEMENT_GRANULARITY)
+        // 2. ImageButton / FAB (Telegram'dagi yashil/ko'k o'q tugma)
+        val fab = nodes.lastOrNull { n ->
+            n.isClickable && n.isEnabled &&
+            (n.className?.let { it.contains("ImageView") || it.contains("Button") || it.contains("FloatingAction") } == true)
+        }
+        if (fab != null) { fab.performAction(AccessibilityNodeInfo.ACTION_CLICK); return }
 
-        // Oxirgi imkon: ekranda eng quyi o'ng tugma
-        val clickable = allNodes(root).filter { it.isClickable && it.isEnabled }
-        clickable.lastOrNull()?.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+        // 3. Oxirgi imkon — fokusdagi maydonga IME "Done" yuborish
+        nodes.firstOrNull { it.isEditable && it.isFocused }
+            ?.performAction(AccessibilityNodeInfo.ACTION_IME_ENTER)
     }
 
     // ── Helpers ──────────────────────────────────────────
     private fun setText(node: AccessibilityNodeInfo, text: String) {
-        val args = Bundle()
-        args.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, text)
-        node.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, args)
+        val b = Bundle()
+        b.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, text)
+        node.performAction(AccessibilityNodeInfo.ACTION_FOCUS)
+        node.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, b)
     }
 
     private fun clipboard(text: String) {
-        val cm = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
-        cm.setPrimaryClip(ClipData.newPlainText("", text))
+        (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager)
+            .setPrimaryClip(ClipData.newPlainText("", text))
     }
 
     private fun showToast(msg: String) {
@@ -248,7 +235,7 @@ class TelegramAutoService : AccessibilityService() {
         val list = mutableListOf<AccessibilityNodeInfo>()
         fun walk(n: AccessibilityNodeInfo) {
             list.add(n)
-            for (i in 0 until n.childCount) walk(n.getChild(i) ?: return)
+            for (i in 0 until n.childCount) { val c = n.getChild(i); if (c != null) walk(c) }
         }
         walk(root)
         return list
