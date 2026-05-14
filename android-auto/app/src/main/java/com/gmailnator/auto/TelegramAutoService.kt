@@ -106,7 +106,7 @@ class TelegramAutoService : AccessibilityService() {
         if (isEmailScreen && state == State.IDLE) {
             // Eski email yozilgan bo'lsa — o'chirib yangi yozish
             val filledField = nodes.firstOrNull {
-                it.isEditable && it.isEnabled && !it.text.isNullOrEmpty()
+                (it.isEditable || it.isFocused) && it.isEnabled && !it.text.isNullOrEmpty()
             }
             if (filledField != null) {
                 showToast("Eski email o'chirilmoqda...")
@@ -116,7 +116,11 @@ class TelegramAutoService : AccessibilityService() {
                 return
             }
 
-            val field = findEditableEmpty(nodes)
+            // Kengaytirilgan field qidirish
+            val field = findEmailField(nodes)
+            val dbg = if (field != null) field.className?.substringAfterLast('.') ?: "found" else "NULL"
+            showToast("Email ekran ✓ | field: $dbg | nodes: ${nodes.size}")
+
             if (field != null) {
                 val h = System.identityHashCode(field)
                 if (h != lastEmailFieldHash) {
@@ -125,6 +129,9 @@ class TelegramAutoService : AccessibilityService() {
                 }
             }
             return
+        }
+        if (!isEmailScreen && state == State.IDLE) {
+            showToast("Ekran: ${texts.take(2).joinToString("|")}")
         }
 
         // ── Kod ekrani ───────────────────────────────────
@@ -143,6 +150,23 @@ class TelegramAutoService : AccessibilityService() {
     // ── Bo'sh tahrirlash maydoni ─────────────────────────
     private fun findEditableEmpty(nodes: List<AccessibilityNodeInfo>) =
         nodes.firstOrNull { it.isEditable && it.isEnabled && it.text.isNullOrEmpty() }
+
+    // ── Email field (keng qidiruv) ────────────────────────
+    private fun findEmailField(nodes: List<AccessibilityNodeInfo>): AccessibilityNodeInfo? {
+        // 1. Fokusdagi bo'sh maydon (eng ishonchli)
+        nodes.firstOrNull { it.isFocused && it.isEnabled && it.text.isNullOrEmpty() }
+            ?.let { return it }
+        // 2. Tahrirlash mumkin bo'sh maydon
+        nodes.firstOrNull { it.isEditable && it.isEnabled && it.text.isNullOrEmpty() }
+            ?.let { return it }
+        // 3. Fokusdagi har qanday maydon (ba'zi Telegram versiyalari)
+        nodes.firstOrNull { it.isFocused && it.isEnabled }
+            ?.let { return it }
+        // 4. Har qanday tahrirlash maydoni
+        nodes.firstOrNull { it.isEditable && it.isEnabled }
+            ?.let { return it }
+        return null
+    }
 
     // ── Email yarat va paste ─────────────────────────────
     private fun handleEmail(field: AccessibilityNodeInfo, root: AccessibilityNodeInfo) {
