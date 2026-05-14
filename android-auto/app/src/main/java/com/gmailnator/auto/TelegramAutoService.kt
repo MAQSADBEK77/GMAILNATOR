@@ -191,8 +191,6 @@ class TelegramAutoService : AccessibilityService() {
                 // 3. Fokusdagi har qanday element (OTP widget) → paste
                 val anyFocused = nodes.firstOrNull { it.isFocused }
                 anyFocused?.performAction(AccessibilityNodeInfo.ACTION_PASTE)
-                // 4. Clipboard'dan paste — klaviatura orqali
-                performGlobalAction(GLOBAL_ACTION_BACK) // klaviaturani faollashtirish
             }
         }
 
@@ -230,9 +228,9 @@ class TelegramAutoService : AccessibilityService() {
         }
         if (fab != null) { fab.performAction(AccessibilityNodeInfo.ACTION_CLICK); return }
 
-        // 3. Oxirgi imkon — fokusdagi maydonga IME "Done" yuborish
+        // 3. Oxirgi imkon — fokusdagi maydonga IME action
         nodes.firstOrNull { it.isEditable && it.isFocused }
-            ?.performAction(AccessibilityNodeInfo.ACTION_IME_ENTER)
+            ?.performAction(AccessibilityNodeInfo.ACTION_NEXT_AT_MOVEMENT_GRANULARITY)
     }
 
     // ── Helpers ──────────────────────────────────────────
