@@ -22,7 +22,10 @@ class FloatingService : Service() {
     private val handler = Handler(Looper.getMainLooper())
 
     private val prefs by lazy { getSharedPreferences("gn", Context.MODE_PRIVATE) }
-    private val apiKey get() = prefs.getString("api_key", "") ?: ""
+    private fun initApi() {
+        Api.serverUrl = prefs.getString("server_url", "") ?: ""
+        Api.token     = prefs.getString("token", "") ?: ""
+    }
 
     private var curEmail = ""
     private var lastCode = ""
@@ -38,6 +41,7 @@ class FloatingService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        initApi()
         wm = getSystemService(WINDOW_SERVICE) as WindowManager
         startForegroundNotif()
         showBubble()
@@ -151,7 +155,7 @@ class FloatingService : Service() {
         stopAutoRefresh()
         executor.execute {
             try {
-                val email = Api.generateEmail(apiKey)
+                val email = Api.generateEmail()
                 curEmail = email
                 copyToClipboard(email)
                 handler.post {
@@ -170,7 +174,7 @@ class FloatingService : Service() {
         if (!isAuto) setStatus("Tekshirilmoqda...")
         executor.execute {
             try {
-                val msgs = Api.getInbox(apiKey, curEmail)
+                val msgs = Api.getInbox(curEmail)
                 if (msgs.isEmpty()) {
                     handler.post { if (!isAuto) setStatus("📭 Xabar kelmadi") }
                     return@execute
@@ -178,7 +182,7 @@ class FloatingService : Service() {
                 val unseen = msgs.filter { it.id !in seenIds }
                 val target = (if (unseen.isNotEmpty()) unseen else msgs).first()
                 seenIds.add(target.id)
-                val content = Api.getMessage(apiKey, target.id)
+                val content = Api.getMessage(target.id)
                 val code = Api.extractCode(content)
                 handler.post {
                     if (code != null) {

@@ -1,4 +1,5 @@
 @echo off
-title Tempmail Server
+title Gmailnator Admin Server
+color 0A
 node server.js
 pause

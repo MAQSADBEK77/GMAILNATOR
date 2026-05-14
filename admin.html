@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Gmailnator Admin</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#0d0d14;color:#e2e8f0;min-height:100vh;padding:24px 16px}
+h1{font-size:1.4rem;font-weight:800;color:#fff;margin-bottom:4px}
+.sub{color:#5c6380;font-size:.82rem;margin-bottom:24px}
+.stats-row{display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap}
+.stat{background:#15182a;border:1px solid #222442;border-radius:12px;padding:16px 20px;flex:1;min-width:120px}
+.stat-n{font-size:2rem;font-weight:800;color:#748ffc}
+.stat-l{font-size:.72rem;color:#5c6380;margin-top:2px}
+.card{background:#15182a;border:1px solid #222442;border-radius:14px;padding:20px;margin-bottom:12px}
+.dev-header{display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.dev-name{font-size:1rem;font-weight:700;color:#e2e8f0;flex:1;cursor:pointer;border:none;background:none;color:#e2e8f0;font-size:1rem;font-weight:700;font-family:inherit}
+.dev-name:focus{outline:1px solid #748ffc;border-radius:4px;padding:2px 6px}
+.badge{font-size:.68rem;font-weight:700;padding:3px 10px;border-radius:20px}
+.badge.on{background:#0d2d10;color:#51cf66;border:1px solid #2d7a36}
+.badge.off{background:#2d1515;color:#f87171;border:1px solid #7a3636}
+.dev-meta{font-size:.72rem;color:#5c6380;margin-bottom:10px}
+.dev-stats{display:flex;gap:16px;margin-bottom:14px}
+.ds{text-align:center}
+.ds-n{font-size:1.4rem;font-weight:800;color:#748ffc}
+.ds-l{font-size:.65rem;color:#5c6380}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:none;border-radius:8px;padding:9px 18px;font-size:.82rem;font-weight:700;cursor:pointer;transition:all .15s}
+.btn-allow{background:#0d2d10;color:#51cf66;border:1px solid #2d7a36}
+.btn-allow:hover{background:#12401a}
+.btn-block{background:#2d1515;color:#f87171;border:1px solid #7a3636}
+.btn-block:hover{background:#401a1a}
+.btn-save{background:#1e2d5a;color:#748ffc;border:1px solid #2d4a8a}
+.btn-save:hover{background:#253872}
+.refresh{float:right;background:#1a1d2a;border:1px solid #222442;color:#748ffc;border-radius:8px;padding:6px 14px;font-size:.78rem;cursor:pointer}
+.empty{text-align:center;padding:40px;color:#5c6380;font-size:.9rem}
+.chart{display:flex;align-items:flex-end;gap:3px;height:40px;margin-top:8px}
+.bar{background:#748ffc;border-radius:3px 3px 0 0;min-width:8px;flex:1;position:relative;cursor:default}
+.bar:hover::after{content:attr(data-tip);position:absolute;bottom:110%;left:50%;transform:translateX(-50%);background:#1a1d2a;border:1px solid #222442;border-radius:6px;padding:3px 8px;font-size:.65rem;white-space:nowrap;z-index:10}
+.new-badge{background:#2a1d00;color:#ffa94d;border:1px solid #7a5200;font-size:.65rem;font-weight:700;padding:2px 7px;border-radius:20px;margin-left:6px}
+</style>
+</head>
+<body>
+
+<h1>🔧 Gmailnator Admin Panel</h1>
+<p class="sub">Qurilmalarni boshqaring • <span id="refreshTime"></span> <button class="refresh" onclick="load()">↻ Yangilash</button></p>
+
+<div class="stats-row" id="statsRow"></div>
+<div id="list"><div class="empty">Yuklanmoqda...</div></div>
+
+<script>
+let devices=[], today='';
+
+async function load(){
+  try{
+    const r=await fetch('/admin/data');
+    const d=await r.json();
+    devices=d.devices; today=d.today;
+    renderStats(); renderList();
+    document.getElementById('refreshTime').textContent='Yangilandi: '+new Date().toLocaleTimeString('uz-UZ');
+  }catch(e){
+    document.getElementById('list').innerHTML='<div class="empty">Server bilan bog\'lanib bo\'lmadi</div>';
+  }
+}
+
+function renderStats(){
+  const total=devices.length;
+  const allowed=devices.filter(d=>d.allowed).length;
+  const todayEmails=devices.reduce((s,d)=>s+d.todayEmails,0);
+  const totalEmails=devices.reduce((s,d)=>s+d.totalEmails,0);
+  document.getElementById('statsRow').innerHTML=`
+    <div class="stat"><div class="stat-n">${total}</div><div class="stat-l">Jami qurilmalar</div></div>
+    <div class="stat"><div class="stat-n" style="color:#51cf66">${allowed}</div><div class="stat-l">Ruxsat berilgan</div></div>
+    <div class="stat"><div class="stat-n" style="color:#ffa94d">${todayEmails}</div><div class="stat-l">Bugun emaillar</div></div>
+    <div class="stat"><div class="stat-n">${totalEmails}</div><div class="stat-l">Jami emaillar</div></div>
+  `;
+}
+
+function renderList(){
+  if(!devices.length){
+    document.getElementById('list').innerHTML='<div class="empty">Hali hech qanday qurilma ulanmagan</div>';
+    return;
+  }
+  // New (not allowed) first
+  const sorted=[...devices].sort((a,b)=>(b.allowed===a.allowed)?0:a.allowed?1:-1);
+  document.getElementById('list').innerHTML=sorted.map(d=>{
+    const last=d.lastSeen?new Date(d.lastSeen).toLocaleString('uz-UZ'):'—';
+    const first=d.firstSeen?new Date(d.firstSeen).toLocaleString('uz-UZ'):'—';
+    const isNew=!d.allowed;
+    const chartHtml=makeChart(d.stats);
+    return `
+    <div class="card" id="card-${d.id}">
+      <div class="dev-header">
+        <input class="dev-name" id="name-${d.id}" value="${esc(d.name)}" onblur="rename('${d.id}')"/>
+        <span class="badge ${d.allowed?'on':'off'}">${d.allowed?'✓ Ruxsat':'✗ Bloklangan'}</span>
+        ${isNew?'<span class="new-badge">⚡ Yangi</span>':''}
+      </div>
+      <div class="dev-meta">Birinchi: ${first} • Oxirgi: ${last} • ID: ${d.id.slice(0,12)}...</div>
+      <div class="dev-stats">
+        <div class="ds"><div class="ds-n" style="color:#ffa94d">${d.todayEmails}</div><div class="ds-l">Bugun</div></div>
+        <div class="ds"><div class="ds-n">${d.totalEmails}</div><div class="ds-l">Jami</div></div>
+      </div>
+      ${chartHtml}
+      <div class="btn-row" style="margin-top:10px">
+        ${d.allowed
+          ?`<button class="btn btn-block" onclick="block('${d.id}')">✗ Bloklash</button>`
+          :`<button class="btn btn-allow" onclick="allow('${d.id}')">✓ Ruxsat berish</button>`}
+        <button class="btn btn-save" onclick="rename('${d.id}')">💾 Nom saqlash</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function makeChart(stats){
+  const keys=Object.keys(stats||{}).sort().slice(-14);
+  if(!keys.length) return '';
+  const max=Math.max(...keys.map(k=>stats[k]),1);
+  const bars=keys.map(k=>{
+    const h=Math.max(4,Math.round((stats[k]/max)*36));
+    return `<div class="bar" style="height:${h}px" data-tip="${k}: ${stats[k]} ta email"></div>`;
+  }).join('');
+  return `<div style="font-size:.65rem;color:#5c6380;margin-top:8px">Oxirgi 14 kun</div><div class="chart">${bars}</div>`;
+}
+
+async function allow(id){
+  await fetch('/admin/allow/'+id,{method:'POST'});
+  load();
+}
+async function block(id){
+  await fetch('/admin/block/'+id,{method:'POST'});
+  load();
+}
+async function rename(id){
+  const name=document.getElementById('name-'+id)?.value?.trim();
+  if(!name) return;
+  await fetch('/admin/rename/'+id,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name})});
+  load();
+}
+function esc(s){return String(s||'').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+load();
+setInterval(load,15000);
+</script>
+</body>
+</html>

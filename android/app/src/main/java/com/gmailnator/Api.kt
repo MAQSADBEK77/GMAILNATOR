@@ -6,67 +6,79 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 
 object Api {
-    private val client = OkHttpClient()
+    private val client = OkHttpClient.Builder()
+        .connectTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
+        .readTimeout(20, java.util.concurrent.TimeUnit.SECONDS)
+        .build()
     private val JSON = "application/json".toMediaType()
-    private const val BASE = "https://gmailnator.p.rapidapi.com/api"
-    private const val HOST = "gmailnator.p.rapidapi.com"
 
-    private val TYPES = """{"type":["public_gmail_plus","public_gmail_dot","private_gmail_plus","private_gmail_dot"]}"""
+    var serverUrl = ""
+    var token = ""
 
-    fun generateEmail(apiKey: String): String {
+    private fun req(method: String, path: String, body: String? = null): JSONObject {
+        if (serverUrl.isEmpty()) throw Exception("Server IP kiritilmagan")
+        val rb = body?.toRequestBody(JSON)
         val req = Request.Builder()
-            .url("$BASE/emails/generate")
-            .post(TYPES.toRequestBody(JSON))
-            .header("x-rapidapi-host", HOST)
-            .header("x-rapidapi-key", apiKey)
+            .url("$serverUrl$path")
+            .method(method, if (method == "GET") null else (rb ?: "{}".toRequestBody(JSON)))
+            .header("x-token", token)
             .build()
-        val body = client.newCall(req).execute().body!!.string()
-        val j = JSONObject(body)
+        val resp = client.newCall(req).execute()
+        val text = resp.body!!.string()
+        val json = JSONObject(text)
+        if (!resp.isSuccessful) {
+            throw Exception(json.optString("error", "HTTP ${resp.code}"))
+        }
+        return json
+    }
+
+    fun login(login: String, password: String, deviceId: String, deviceName: String): String {
+        if (serverUrl.isEmpty()) throw Exception("Server IP kiritilmagan")
+        val body = JSONObject().apply {
+            put("login", login); put("password", password)
+            put("deviceId", deviceId); put("deviceName", deviceName)
+        }.toString()
+        val req = Request.Builder()
+            .url("$serverUrl/login")
+            .post(body.toRequestBody(JSON))
+            .build()
+        val resp = client.newCall(req).execute()
+        val json = JSONObject(resp.body!!.string())
+        if (!resp.isSuccessful) throw Exception(json.optString("error", "Login xatosi"))
+        return json.getString("token")
+    }
+
+    fun generateEmail(): String {
+        val j = req("POST", "/generate")
         if (j.optString("status") != "success") throw Exception(j.optString("message", "Xatolik"))
         return j.getString("email")
     }
 
-    data class Message(val id: String, val from: String, val subject: String, val timeAgo: String)
+    data class Msg(val id: String, val from: String, val subject: String, val timeAgo: String)
 
-    fun getInbox(apiKey: String, email: String): List<Message> {
-        val body = """{"email":"$email","limit":20}"""
-        val req = Request.Builder()
-            .url("$BASE/inbox")
-            .post(body.toRequestBody(JSON))
-            .header("x-rapidapi-host", HOST)
-            .header("x-rapidapi-key", apiKey)
-            .build()
-        val resp = JSONObject(client.newCall(req).execute().body!!.string())
-        val arr = resp.optJSONArray("messages") ?: return emptyList()
+    fun getInbox(email: String): List<Msg> {
+        val body = JSONObject().apply { put("email", email); put("limit", 20) }.toString()
+        val j = req("POST", "/inbox", body)
+        val arr = j.optJSONArray("messages") ?: return emptyList()
         return (0 until arr.length()).map {
             val m = arr.getJSONObject(it)
-            Message(m.getString("id"), m.optString("from"), m.optString("subject"), m.optString("time_ago"))
+            Msg(m.getString("id"), m.optString("from"), m.optString("subject"), m.optString("time_ago"))
         }
     }
 
-    fun getMessage(apiKey: String, msgId: String): String {
-        val req = Request.Builder()
-            .url("$BASE/inbox/${msgId}")
-            .get()
-            .header("x-rapidapi-host", HOST)
-            .header("x-rapidapi-key", apiKey)
-            .build()
-        val resp = JSONObject(client.newCall(req).execute().body!!.string())
-        return resp.optString("content", "")
+    fun getMessage(msgId: String): String {
+        val j = req("GET", "/message/${msgId}")
+        return j.optString("content", "")
     }
 
     fun extractCode(html: String): String? {
-        val text = html.replace(Regex("<[^>]+>"), " ").replace("&nbsp;", " ")
-        val patterns = listOf(
+        val t = html.replace(Regex("<[^>]+>"), " ").replace("&nbsp;", " ")
+        for (p in listOf(
             Regex("""(?:login|verif|confirm|code|kod)[^\d]*(\d{4,8})""", RegexOption.IGNORE_CASE),
             Regex("""(\d{5,6})\s*(?:is your|bu sizning)""", RegexOption.IGNORE_CASE),
             Regex("""\b(\d{5,6})\b"""),
             Regex("""\b(\d{4})\b"""),
-        )
-        for (p in patterns) {
-            val m = p.find(text)
-            if (m != null) return m.groupValues[1]
-        }
+        )) { p.find(t)?.let { return it.groupValues[1] } }
         return null
     }
 }
