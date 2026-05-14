@@ -6,10 +6,10 @@ import android.graphics.*
 import android.graphics.drawable.GradientDrawable
 import android.os.*
 import android.view.*
-import android.view.View.OnTouchListener
 import android.widget.*
 import androidx.core.app.NotificationCompat
 import java.util.concurrent.Executors
+import kotlin.math.abs
 
 class FloatingService : Service() {
 
@@ -282,7 +282,7 @@ class FloatingService : Service() {
                 MotionEvent.ACTION_DOWN -> { startX = event.rawX; startY = event.rawY; startPx = params.x; startPy = params.y; moved = false; true }
                 MotionEvent.ACTION_MOVE -> {
                     val dx = (event.rawX - startX).toInt(); val dy = (event.rawY - startY).toInt()
-                    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) { moved = true }
+                    if (abs(dx) > 5 || abs(dy) > 5) { moved = true }
                     params.x = startPx + dx; params.y = startPy - dy
                     if (panelView == null) wm.updateViewLayout(view, params); true
                 }
