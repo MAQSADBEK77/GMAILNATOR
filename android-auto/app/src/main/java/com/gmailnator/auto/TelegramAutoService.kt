@@ -70,6 +70,13 @@ class TelegramAutoService : AccessibilityService() {
         handler.postAtTime({ checkScreen() }, "chk", SystemClock.uptimeMillis() + 400)
     }
 
+    // ── "Email not allowed" xato so'zlari ────────────────
+    private val ERROR_KW = listOf(
+        "not allowed", "invalid email", "this email",
+        "не разрешен", "не допускается", "недействительн",
+        "ruxsat yo'q", "noto'g'ri email"
+    )
+
     private fun checkScreen() {
         val root = rootInActiveWindow ?: return
         val nodes = allNodes(root)
@@ -77,9 +84,32 @@ class TelegramAutoService : AccessibilityService() {
             (it.text?.toString() ?: it.contentDescription?.toString())?.lowercase()
         }
 
+        // ── "Email not allowed" xatosi ───────────────────
+        val hasError = ERROR_KW.any { kw -> texts.any { it.contains(kw) } }
+        if (hasError) {
+            showToast("Email ruxsat yo'q — yangi email yoziladi...")
+            resetState()
+            performGlobalAction(GLOBAL_ACTION_BACK)
+            lastEmailFieldHash = 0
+            handler.postDelayed({ checkScreen() }, 1000)
+            return
+        }
+
         // ── Email ekrani ─────────────────────────────────
         val isEmailScreen = EMAIL_KW.any { kw -> texts.any { it.contains(kw) } }
         if (isEmailScreen && state == State.IDLE) {
+            // Eski email yozilgan bo'lsa — o'chirib yangi yozish
+            val filledField = nodes.firstOrNull {
+                it.isEditable && it.isEnabled && !it.text.isNullOrEmpty()
+            }
+            if (filledField != null) {
+                showToast("Eski email o'chirilmoqda...")
+                setText(filledField, "")
+                lastEmailFieldHash = 0
+                handler.postDelayed({ checkScreen() }, 600)
+                return
+            }
+
             val field = findEditableEmpty(nodes)
             if (field != null) {
                 val h = field.hashCode()

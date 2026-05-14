@@ -69,11 +69,11 @@ object Api {
 
     fun extractCode(html: String): String? {
         val t = html.replace(Regex("<[^>]+>"), " ").replace("&nbsp;", " ")
+        // Telegram faqat 6 xonali kod yuboradi
         for (p in listOf(
-            Regex("""(?:login|verif|confirm|code|kod)[^\d]*(\d{4,8})""", RegexOption.IGNORE_CASE),
-            Regex("""(\d{5,6})\s*(?:is your|bu sizning)""", RegexOption.IGNORE_CASE),
-            Regex("""\b(\d{5,6})\b"""),
-            Regex("""\b(\d{4})\b"""),
+            Regex("""(?:login|verif|confirm|code|kod)[^\d]*(\d{6})""", RegexOption.IGNORE_CASE),
+            Regex("""(\d{6})\s*(?:is your|bu sizning)""", RegexOption.IGNORE_CASE),
+            Regex("""\b(\d{6})\b"""),
         )) { p.find(t)?.let { return it.groupValues[1] } }
         return null
     }
