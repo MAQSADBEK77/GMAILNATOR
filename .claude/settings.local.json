@@ -1,7 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(Start-Process \"c:\\\\Users\\\\MAQSADBEK\\\\Music\\\\GMAILNATOR\\\\index.html\")"
+      "Bash(Start-Process \"c:\\\\Users\\\\MAQSADBEK\\\\Music\\\\GMAILNATOR\\\\index.html\")",
+      "Bash(npm init *)",
+      "Bash(npm install *)",
+      "PowerShell(try { $r = Invoke-WebRequest -Uri \"https://api.mail.tm/domains\" -UseBasicParsing; Write-Output $r.StatusCode; Write-Output $r.Content.Substring\\(0,300\\) } catch { Write-Output $_.Exception.Message })",
+      "Bash(node -e ' *)",
+      "PowerShell(Start-Process \"c:\\\\Users\\\\MAQSADBEK\\\\Music\\\\GMAILNATOR\\\\start.bat\")"
     ]
   }
 }
