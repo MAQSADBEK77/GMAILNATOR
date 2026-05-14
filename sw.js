@@ -1,4 +1,4 @@
-const CACHE = 'tempmail-v1';
+const CACHE = 'gmailnator-v2';
 const ASSETS = ['./', './index.html', './manifest.json'];
 
 self.addEventListener('install', e => {
