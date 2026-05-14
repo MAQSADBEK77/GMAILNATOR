@@ -29,11 +29,11 @@ jobs:
 
       - name: Build Gmailnator APK
         working-directory: android
-        run: gradle assembleDebug --no-daemon
+        run: gradle assembleDebug --no-daemon --stacktrace 2>&1
 
       - name: Build Gmailnator Auto APK
         working-directory: android-auto
-        run: gradle assembleDebug --no-daemon
+        run: gradle assembleDebug --no-daemon --stacktrace 2>&1
 
       - name: Upload Gmailnator APK
         uses: actions/upload-artifact@v4
