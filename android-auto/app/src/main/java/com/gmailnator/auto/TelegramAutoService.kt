@@ -138,27 +138,27 @@ class TelegramAutoService : AccessibilityService() {
         var attempts = 0
         pollJob = object : Runnable {
             override fun run() {
-                if (++attempts > 72) {  // 6 daqiqa
+                if (++attempts > 180) {  // 6 daqiqa (180 * 2s)
                     handler.post { state = State.IDLE; showToast("Timeout") }
                     return
                 }
                 executor.execute {
                     try {
                         val msgs = Api.getInbox(curEmail)
-                        if (msgs.isEmpty()) { handler.postDelayed(this, 5000); return@execute }
+                        if (msgs.isEmpty()) { handler.postDelayed(this, 2000); return@execute }
                         val code = Api.extractCode(Api.getMessage(msgs[0].id))
                         if (code != null) {
                             handler.post { pasteCode(code) }
                         } else {
-                            handler.postDelayed(this, 5000)
+                            handler.postDelayed(this, 2000)
                         }
                     } catch (e: Exception) {
-                        handler.postDelayed(this, 5000)
+                        handler.postDelayed(this, 2000)
                     }
                 }
             }
         }
-        handler.postDelayed(pollJob!!, 5000)
+        handler.postDelayed(pollJob!!, 3000)
     }
 
     private fun stopPolling() {
