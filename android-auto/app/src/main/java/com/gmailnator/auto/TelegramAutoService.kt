@@ -26,33 +26,37 @@ class TelegramAutoService : AccessibilityService() {
         "org.thunderdog.challegram"   // Telegram X
     )
 
-    // ── Email ekrani kalit so'zlari (EN + RU + UZ) ───────
+    // ── Email ekrani kalit so'zlari (EN + RU + UZ + TG-X) ─
     private val EMAIL_KW = listOf(
-        // English
+        // English / Telegram X
         "email", "e-mail", "login email", "choose a login", "your email",
         "add email", "valid email", "protect your account",
+        "enter your email address",   // Telegram X hint
+        "enter email",
         // Russian
-        "почт",            // почту / почты / почтой
-        "электронной",     // Адрес электронной почты
-        "укажите",         // Укажите почту для входа
+        "почт", "электронной", "укажите",
         "введите email", "выберите email", "ваш email",
         // Uzbek
-        "emailingiz",      // Emailingiz (field label)
-        "emailini",        // Login emailini kiriting
-        "pochta", "elektron", "email kiriting"
+        "emailingiz", "emailini", "pochta", "elektron", "email kiriting"
     )
 
-    // ── Kod ekrani kalit so'zlari (EN + RU + UZ) ─────────
+    // ── Kod ekrani kalit so'zlari (EN + RU + UZ + TG-X) ──
     private val CODE_KW = listOf(
-        // English
-        "verification code", "code", "verification", "login code",
-        "enter code", "digit", "otp", "confirm", "check your email",
+        // English / Telegram X
+        "verification code", "confirmation code",   // Telegram X title
+        "code", "verification", "login code",
+        "enter code", "otp", "confirm", "check your email",
+        "we've sent", "sent the code",              // Telegram X helper text
         // Russian
-        "код", "введите код", "подтвер", "проверочн",
-        "код подтверждения", "проверьте",
+        "код", "введите код", "подтвер", "проверочн", "проверьте",
         // Uzbek
         "kod", "tasdiqlash", "kodni", "kiriting", "tekshiring"
     )
+
+    companion object {
+        const val ACTION_STOP    = "com.gmailnator.auto.STOP"
+        const val ACTION_RESTART = "com.gmailnator.auto.RESTART"
+    }
 
     // ── "Next" tugma matnlari (EN + RU + UZ) ─────────────
     private val NEXT_TEXTS = listOf(
@@ -67,6 +71,23 @@ class TelegramAutoService : AccessibilityService() {
     override fun onServiceConnected() {
         super.onServiceConnected()
         showToast("Gmailnator Auto: faol ✓")
+    }
+
+    // MainActivity dan To'xtatish / Qayta boshlash
+    fun handleAction(action: String) {
+        when (action) {
+            ACTION_STOP -> {
+                stopPolling()
+                resetState()
+                showToast("⏹ To'xtatildi")
+            }
+            ACTION_RESTART -> {
+                stopPolling()
+                resetState()
+                lastEmailFieldHash = 0
+                showToast("▶ Qayta boshlandi")
+            }
+        }
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
@@ -86,9 +107,13 @@ class TelegramAutoService : AccessibilityService() {
     private fun checkScreen() {
         val root = rootInActiveWindow ?: return
         val nodes = allNodes(root)
-        val texts = nodes.mapNotNull {
-            (it.text?.toString() ?: it.contentDescription?.toString())?.lowercase()
-        }
+        val texts = nodes.flatMap {
+            listOfNotNull(
+                it.text?.toString(),
+                it.hintText?.toString(),
+                it.contentDescription?.toString()
+            )
+        }.map { it.lowercase() }
 
         // ── "Email not allowed" xatosi ───────────────────
         val hasError = ERROR_KW.any { kw -> texts.any { it.contains(kw) } }

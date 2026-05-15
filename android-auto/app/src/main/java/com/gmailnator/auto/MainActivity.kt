@@ -13,21 +13,29 @@ class MainActivity : AppCompatActivity() {
     private lateinit var statusTv: TextView
     private lateinit var enableBtn: Button
     private lateinit var serverTv: TextView
+    private lateinit var stopBtn: Button
+    private lateinit var restartBtn: Button
+    private lateinit var controlRow: LinearLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        statusTv  = findViewById(R.id.statusTv)
-        enableBtn = findViewById(R.id.enableBtn)
-        serverTv  = findViewById(R.id.serverTv)
+        statusTv   = findViewById(R.id.statusTv)
+        enableBtn  = findViewById(R.id.enableBtn)
+        serverTv   = findViewById(R.id.serverTv)
+        stopBtn    = findViewById(R.id.stopBtn)
+        restartBtn = findViewById(R.id.restartBtn)
+        controlRow = findViewById(R.id.controlRow)
 
         serverTv.text = "Server: ${Api.SERVER}"
 
         Api.deviceId   = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
         Api.deviceName = android.os.Build.MANUFACTURER + " " + android.os.Build.MODEL
 
-        enableBtn.setOnClickListener { openAccessibility() }
+        enableBtn.setOnClickListener  { openAccessibility() }
+        stopBtn.setOnClickListener    { sendAction(TelegramAutoService.ACTION_STOP) }
+        restartBtn.setOnClickListener { sendAction(TelegramAutoService.ACTION_RESTART) }
 
         checkStatus()
     }
@@ -42,11 +50,13 @@ class MainActivity : AppCompatActivity() {
         if (enabled) {
             enableBtn.text = "✓ Yoqilgan — Telegram'ni oching"
             enableBtn.isEnabled = false
-            statusTv.text = "Faol. Telegram'da email yoki kod maydoni ochilsa — o'zi to'ldiradi."
+            controlRow.visibility = android.view.View.VISIBLE
+            statusTv.text = "Faol. Email yoki kod maydon ochilsa — o'zi to'ldiradi."
             checkServer()
         } else {
             enableBtn.text = "Accessibility'ni Yoqish"
             enableBtn.isEnabled = true
+            controlRow.visibility = android.view.View.GONE
             statusTv.text = "⚠ Accessibility ruxsatini bering"
         }
     }
@@ -58,6 +68,15 @@ class MainActivity : AppCompatActivity() {
                 serverTv.text = if (ok) "✓ Server: ${Api.SERVER}" else "✗ Server ulanmadi: ${Api.SERVER}"
             }
         }
+    }
+
+    private fun sendAction(action: String) {
+        startService(Intent(this, TelegramAutoService::class.java).apply {
+            this.action = action
+        })
+        Toast.makeText(this,
+            if (action == TelegramAutoService.ACTION_STOP) "⏹ To'xtatildi" else "▶ Qayta boshlandi",
+            Toast.LENGTH_SHORT).show()
     }
 
     private fun openAccessibility() {

@@ -16,19 +16,38 @@
     <TextView android:text="Telegram'ni to'liq avtomatik ro'yxatdan o'tkazish"
         android:textSize="12sp" android:textColor="#5c6380" android:gravity="center"
         android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:layout_marginBottom="36dp"/>
+        android:layout_marginBottom="32dp"/>
 
     <Button android:id="@+id/enableBtn"
         android:layout_width="match_parent" android:layout_height="60dp"
         android:text="Accessibility'ni Yoqish"
         android:textColor="#fff" android:textStyle="bold" android:textSize="15sp"
-        android:background="@drawable/bg_btn_primary" android:layout_marginBottom="14dp"/>
+        android:background="@drawable/bg_btn_primary" android:layout_marginBottom="12dp"/>
+
+    <!-- To'xtatish / Qayta boshlash tugmalari -->
+    <LinearLayout android:id="@+id/controlRow"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:gravity="center"
+        android:layout_marginBottom="14dp" android:visibility="gone" android:gap="10dp">
+
+        <Button android:id="@+id/stopBtn"
+            android:layout_width="0dp" android:layout_height="52dp" android:layout_weight="1"
+            android:text="⏹ To'xtatish"
+            android:textColor="#f87171" android:textStyle="bold" android:textSize="13sp"
+            android:background="@drawable/bg_btn_secondary"/>
+
+        <Button android:id="@+id/restartBtn"
+            android:layout_width="0dp" android:layout_height="52dp" android:layout_weight="1"
+            android:text="▶ Qayta boshlash"
+            android:textColor="#51cf66" android:textStyle="bold" android:textSize="13sp"
+            android:background="@drawable/bg_btn_secondary"/>
+    </LinearLayout>
 
     <TextView android:id="@+id/statusTv"
         android:text="Tekshirilmoqda..." android:textSize="12sp"
         android:textColor="#5c6380" android:gravity="center"
         android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:layout_marginBottom="12dp" android:lineSpacingExtra="4dp"/>
+        android:layout_marginBottom="10dp" android:lineSpacingExtra="4dp"/>
 
     <TextView android:id="@+id/serverTv"
         android:text="" android:textSize="11sp" android:textColor="#3d4a6e"
