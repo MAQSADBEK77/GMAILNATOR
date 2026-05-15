@@ -1,59 +1,100 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent"
-    android:orientation="vertical" android:gravity="center"
-    android:padding="28dp" android:background="#0d0d14">
+    android:background="#0d0d14">
 
-    <TextView android:text="🤖" android:textSize="60sp" android:gravity="center"
-        android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:layout_marginBottom="12dp"/>
+    <!-- TOKEN EKRANI -->
+    <LinearLayout android:id="@+id/tokenScreen"
+        android:layout_width="match_parent" android:layout_height="match_parent"
+        android:orientation="vertical" android:gravity="center"
+        android:padding="32dp" android:visibility="gone">
 
-    <TextView android:text="Gmailnator Auto" android:textSize="24sp" android:textStyle="bold"
-        android:textColor="#e9ecef" android:gravity="center"
-        android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:layout_marginBottom="6dp"/>
+        <TextView android:text="🔐" android:textSize="56sp" android:gravity="center"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"/>
 
-    <TextView android:text="Telegram'ni to'liq avtomatik ro'yxatdan o'tkazish"
-        android:textSize="12sp" android:textColor="#5c6380" android:gravity="center"
-        android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:layout_marginBottom="32dp"/>
+        <TextView android:text="Gmailnator Auto" android:textSize="24sp" android:textStyle="bold"
+            android:textColor="#e9ecef" android:gravity="center"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"/>
 
-    <Button android:id="@+id/enableBtn"
-        android:layout_width="match_parent" android:layout_height="60dp"
-        android:text="Accessibility'ni Yoqish"
-        android:textColor="#fff" android:textStyle="bold" android:textSize="15sp"
-        android:background="@drawable/bg_btn_primary" android:layout_marginBottom="12dp"/>
+        <TextView android:text="Kirish uchun kalit kiriting"
+            android:textSize="13sp" android:textColor="#5c6380" android:gravity="center"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginBottom="32dp"/>
 
-    <!-- To'xtatish / Qayta boshlash tugmalari -->
-    <LinearLayout android:id="@+id/controlRow"
-        android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:orientation="horizontal" android:gravity="center"
-        android:layout_marginBottom="14dp" android:visibility="gone">
+        <EditText android:id="@+id/tokenInput"
+            android:layout_width="match_parent" android:layout_height="54dp"
+            android:background="@drawable/bg_input" android:padding="14dp"
+            android:textColor="#e9ecef" android:hint="Kalit..."
+            android:textColorHint="#475569" android:inputType="textPassword"
+            android:imeOptions="actionDone"
+            android:layout_marginBottom="12dp"/>
 
-        <Button android:id="@+id/stopBtn"
-            android:layout_width="0dp" android:layout_height="52dp" android:layout_weight="1"
-            android:layout_marginEnd="5dp"
-            android:text="⏹ To'xtatish"
-            android:textColor="#f87171" android:textStyle="bold" android:textSize="13sp"
-            android:background="@drawable/bg_btn_secondary"/>
+        <Button android:id="@+id/tokenSubmit"
+            android:layout_width="match_parent" android:layout_height="54dp"
+            android:text="Kirish" android:textColor="#fff"
+            android:textStyle="bold" android:textSize="15sp"
+            android:background="@drawable/bg_btn_primary"
+            android:layout_marginBottom="10dp"/>
 
-        <Button android:id="@+id/restartBtn"
-            android:layout_width="0dp" android:layout_height="52dp" android:layout_weight="1"
-            android:layout_marginStart="5dp"
-            android:text="▶ Qayta boshlash"
-            android:textColor="#51cf66" android:textStyle="bold" android:textSize="13sp"
-            android:background="@drawable/bg_btn_secondary"/>
+        <TextView android:id="@+id/tokenError" android:text=""
+            android:textSize="13sp" android:textColor="#f87171"
+            android:gravity="center" android:visibility="gone"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
     </LinearLayout>
 
-    <TextView android:id="@+id/statusTv"
-        android:text="Tekshirilmoqda..." android:textSize="12sp"
-        android:textColor="#5c6380" android:gravity="center"
-        android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp" android:lineSpacingExtra="4dp"/>
+    <!-- ASOSIY EKRAN -->
+    <LinearLayout android:id="@+id/mainScreen"
+        android:layout_width="match_parent" android:layout_height="match_parent"
+        android:orientation="vertical" android:gravity="center"
+        android:padding="28dp" android:visibility="gone">
 
-    <TextView android:id="@+id/serverTv"
-        android:text="" android:textSize="11sp" android:textColor="#3d4a6e"
-        android:gravity="center" android:fontFamily="monospace"
-        android:layout_width="match_parent" android:layout_height="wrap_content"/>
+        <TextView android:text="🤖" android:textSize="60sp" android:gravity="center"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"/>
 
-</LinearLayout>
+        <TextView android:text="Gmailnator Auto" android:textSize="24sp" android:textStyle="bold"
+            android:textColor="#e9ecef" android:gravity="center"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginBottom="32dp"/>
+
+        <Button android:id="@+id/enableBtn"
+            android:layout_width="match_parent" android:layout_height="60dp"
+            android:text="Accessibility'ni Yoqish"
+            android:textColor="#fff" android:textStyle="bold" android:textSize="15sp"
+            android:background="@drawable/bg_btn_primary" android:layout_marginBottom="12dp"/>
+
+        <LinearLayout android:id="@+id/controlRow"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="14dp" android:visibility="gone">
+
+            <Button android:id="@+id/stopBtn"
+                android:layout_width="0dp" android:layout_height="52dp" android:layout_weight="1"
+                android:layout_marginEnd="5dp"
+                android:text="⏹ To'xtatish"
+                android:textColor="#f87171" android:textStyle="bold" android:textSize="13sp"
+                android:background="@drawable/bg_btn_secondary"/>
+
+            <Button android:id="@+id/restartBtn"
+                android:layout_width="0dp" android:layout_height="52dp" android:layout_weight="1"
+                android:layout_marginStart="5dp"
+                android:text="▶ Qayta boshlash"
+                android:textColor="#51cf66" android:textStyle="bold" android:textSize="13sp"
+                android:background="@drawable/bg_btn_secondary"/>
+        </LinearLayout>
+
+        <TextView android:id="@+id/statusTv"
+            android:text="Tekshirilmoqda..." android:textSize="12sp"
+            android:textColor="#5c6380" android:gravity="center"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"/>
+
+        <TextView android:id="@+id/serverTv"
+            android:text="" android:textSize="11sp" android:textColor="#3d4a6e"
+            android:gravity="center" android:fontFamily="monospace"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+    </LinearLayout>
+
+</FrameLayout>

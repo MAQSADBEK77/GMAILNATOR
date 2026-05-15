@@ -1,50 +1,44 @@
-# Barcha sinf/metod nomlarini o'zgartiradi (maksimal himoya)
--optimizationpasses 5
+# Obfuskatsiya — lekin app ishlaydi
+-optimizationpasses 3
 -dontusemixedcaseclassnames
 -dontskipnonpubliclibraryclasses
--dontskipnonpubliclibraryclassmembers
 -allowaccessmodification
--mergeinterfacesaggressively
-
-# AccessibilityService — Android tizimi chaqiradi, nom o'zgarmasin
--keep public class com.gmailnator.auto.TelegramAutoService {
-    public *;
-}
--keep public class com.gmailnator.auto.MainActivity {
-    public *;
-}
-
-# Companion object konstantalari
--keepclassmembers class com.gmailnator.auto.TelegramAutoService {
-    public static final java.lang.String ACTION_STOP;
-    public static final java.lang.String ACTION_RESTART;
-}
 
 # Android komponentlari
 -keep public class * extends android.app.Activity
 -keep public class * extends android.app.Service
--keep public class * extends android.accessibilityservice.AccessibilityService
+-keep public class * extends android.app.Application
 -keep public class * extends android.content.BroadcastReceiver
+-keep public class * extends android.accessibilityservice.AccessibilityService
+-keep class com.gmailnator.auto.MainActivity { *; }
+-keep class com.gmailnator.auto.TelegramAutoService { *; }
 
-# OkHttp — tarmoq kutubxonasi
+# View'lar
+-keep public class * extends android.view.View {
+    public <init>(android.content.Context);
+    public <init>(android.content.Context, android.util.AttributeSet);
+}
+
+# R sinfi
+-keepclassmembers class **.R$* { public static <fields>; }
+
+# OkHttp
 -dontwarn okhttp3.**
--dontwarn okio.**
 -keep class okhttp3.** { *; }
 -keep class okio.** { *; }
 
 # Kotlin
 -keep class kotlin.** { *; }
--keepclassmembers class kotlin.Metadata { *; }
+-keep class kotlin.Metadata { *; }
 -dontwarn kotlin.**
+-keepclassmembers class **$WhenMappings { <fields>; }
+-keepclassmembers class kotlin.Metadata { public <methods>; }
 
 # JSON
 -keep class org.json.** { *; }
 
-# Reflection orqali ishlatiladigan narsalar
 -keepattributes *Annotation*
 -keepattributes Signature
--keepattributes SourceFile,LineNumberTable
-
-# Barcha qolgan kodlarni obfuskat qiladi
--repackageclasses 'x'
--flattenpackagehierarchy 'x'
+-keepattributes Exceptions
+-keepattributes InnerClasses
+-keepattributes EnclosingMethod

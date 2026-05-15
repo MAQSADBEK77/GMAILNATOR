@@ -1,37 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:gravity="center"
-    android:padding="28dp"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
     android:background="#0d0d14">
 
-    <TextView android:text="📧" android:textSize="56sp" android:gravity="center"
-        android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:layout_marginBottom="12dp"/>
+    <!-- TOKEN EKRANI -->
+    <LinearLayout android:id="@+id/tokenScreen"
+        android:layout_width="match_parent" android:layout_height="match_parent"
+        android:orientation="vertical" android:gravity="center"
+        android:padding="32dp" android:visibility="gone">
 
-    <TextView android:text="Gmailnator" android:textSize="26sp" android:textStyle="bold"
-        android:textColor="#e9ecef" android:gravity="center"
-        android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"/>
+        <TextView android:text="🔐" android:textSize="56sp" android:gravity="center"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"/>
 
-    <TextView android:text="Telegram uchun @gmail.com" android:textSize="13sp"
-        android:textColor="#5c6380" android:gravity="center"
-        android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:layout_marginBottom="40dp"/>
+        <TextView android:text="Gmailnator" android:textSize="24sp" android:textStyle="bold"
+            android:textColor="#e9ecef" android:gravity="center"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"/>
 
-    <Button android:id="@+id/floatBtn"
-        android:layout_width="match_parent" android:layout_height="64dp"
-        android:text="📧  Floating Panel Yoqish"
-        android:textColor="#fff" android:textStyle="bold" android:textSize="16sp"
-        android:background="@drawable/bg_btn_primary"
-        android:layout_marginBottom="16dp"/>
+        <TextView android:text="Kirish uchun kalit kiriting"
+            android:textSize="13sp" android:textColor="#5c6380" android:gravity="center"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginBottom="32dp"/>
 
-    <TextView android:id="@+id/statusTv"
-        android:text="Ulaning..."
-        android:textSize="12sp" android:textColor="#5c6380"
-        android:gravity="center"
-        android:layout_width="match_parent" android:layout_height="wrap_content"/>
+        <EditText android:id="@+id/tokenInput"
+            android:layout_width="match_parent" android:layout_height="54dp"
+            android:background="@drawable/bg_input" android:padding="14dp"
+            android:textColor="#e9ecef" android:hint="Kalit..."
+            android:textColorHint="#475569" android:inputType="textPassword"
+            android:imeOptions="actionDone"
+            android:layout_marginBottom="12dp"/>
 
-</LinearLayout>
+        <Button android:id="@+id/tokenSubmit"
+            android:layout_width="match_parent" android:layout_height="54dp"
+            android:text="Kirish" android:textColor="#fff"
+            android:textStyle="bold" android:textSize="15sp"
+            android:background="@drawable/bg_btn_primary"
+            android:layout_marginBottom="10dp"/>
+
+        <TextView android:id="@+id/tokenError" android:text=""
+            android:textSize="13sp" android:textColor="#f87171"
+            android:gravity="center" android:visibility="gone"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+    </LinearLayout>
+
+    <!-- ASOSIY EKRAN -->
+    <LinearLayout android:id="@+id/mainScreen"
+        android:layout_width="match_parent" android:layout_height="match_parent"
+        android:orientation="vertical" android:gravity="center"
+        android:padding="28dp" android:visibility="gone">
+
+        <TextView android:text="📧" android:textSize="56sp" android:gravity="center"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"/>
+
+        <TextView android:text="Gmailnator" android:textSize="24sp" android:textStyle="bold"
+            android:textColor="#e9ecef" android:gravity="center"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginBottom="32dp"/>
+
+        <Button android:id="@+id/floatBtn"
+            android:layout_width="match_parent" android:layout_height="64dp"
+            android:text="📧  Floating Panel Yoqish"
+            android:textColor="#fff" android:textStyle="bold" android:textSize="16sp"
+            android:background="@drawable/bg_btn_primary"
+            android:layout_marginBottom="16dp"/>
+
+        <TextView android:id="@+id/statusTv"
+            android:text="Ulaning..." android:textSize="12sp"
+            android:textColor="#5c6380" android:gravity="center"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+    </LinearLayout>
+
+</FrameLayout>
