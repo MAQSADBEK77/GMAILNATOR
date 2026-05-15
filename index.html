@@ -28,42 +28,37 @@
       gap:10px;min-height:100%;
     }
 
-    /* ── Setup screen ─────────────────────────── */
-    #setupScreen{
-      flex:1;display:flex;flex-direction:column;
-      align-items:center;justify-content:center;gap:16px;padding:20px;
+    /* ── Token screen ────────────────────────────── */
+    #tokenScreen{
+      flex:1;display:none;flex-direction:column;
+      align-items:center;justify-content:center;gap:16px;padding:24px;
     }
-    .setup-logo{font-size:3rem;margin-bottom:4px}
-    .setup-title{font-size:1.3rem;font-weight:800;color:var(--text)}
-    .setup-sub{font-size:.82rem;color:var(--muted);text-align:center;line-height:1.5}
-    .setup-input{
+    .t-logo{font-size:3.5rem;margin-bottom:4px}
+    .t-title{font-size:1.4rem;font-weight:800;color:var(--text)}
+    .t-sub{font-size:.82rem;color:var(--muted);text-align:center}
+    .t-input{
       width:100%;background:var(--card);border:1.5px solid var(--border);
-      border-radius:var(--r);padding:14px;color:var(--text);
-      font-size:.85rem;font-family:monospace;outline:none;
+      border-radius:var(--r);padding:15px 14px;color:var(--text);
+      font-size:.95rem;outline:none;letter-spacing:2px;text-align:center;
     }
-    .setup-input:focus{border-color:var(--blue)}
-    .setup-btn{
+    .t-input:focus{border-color:var(--blue)}
+    .t-btn{
       width:100%;background:linear-gradient(135deg,#3b5bdb,#7048e8);
       color:#fff;border:none;border-radius:var(--r);
       padding:16px;font-size:1rem;font-weight:800;cursor:pointer;
+      transition:opacity .15s;
     }
-    .setup-note{font-size:.72rem;color:var(--muted);text-align:center}
+    .t-btn:active{opacity:.8}
+    .t-err{font-size:.82rem;color:#f87171;text-align:center;min-height:20px}
 
-    /* ── Main screen ──────────────────────────── */
+    /* ── Main screen ──────────────────────────────── */
     #mainScreen{display:none;flex-direction:column;gap:10px;flex:1}
 
-    /* ── Header ───────────────────────────────── */
-    .hdr{
-      display:flex;align-items:center;justify-content:space-between;
-      padding:2px 0;
-    }
+    /* ── Header ───────────────────────────────────── */
+    .hdr{display:flex;align-items:center;justify-content:space-between;padding:2px 0}
     .logo{font-size:1.1rem;font-weight:800}
     .logo span{color:#ea4335}
     .hdr-right{display:flex;align-items:center;gap:10px}
-    .btn-gear{
-      background:none;border:none;color:var(--muted);
-      font-size:1.1rem;cursor:pointer;padding:4px;
-    }
     .auto-row{display:flex;align-items:center;gap:6px;font-size:.75rem;color:var(--muted)}
     .cd{font-size:.72rem;color:var(--blue);min-width:20px}
     .toggle{position:relative;width:38px;height:20px}
@@ -76,7 +71,7 @@
     .toggle input:checked+.track{background:#1d3a6e}
     .toggle input:checked+.track::before{background:var(--blue);transform:translateX(18px)}
 
-    /* ── Info boxes ───────────────────────────── */
+    /* ── Info boxes ───────────────────────────────── */
     .info-row{display:flex;gap:10px}
     .info-box{
       flex:1;background:var(--card);border:1.5px solid var(--border);
@@ -101,7 +96,7 @@
     }
     .info-box.flash::after{opacity:1}
 
-    /* ── Status ───────────────────────────────── */
+    /* ── Status ───────────────────────────────────── */
     .status{
       padding:9px 14px;border-radius:10px;font-size:.78rem;font-weight:500;
       text-align:center;background:var(--card);border:1px solid var(--border);
@@ -112,7 +107,7 @@
     .status.err{border-color:var(--red);color:#ff8787;background:#1f0a0a}
     .status.info{border-color:var(--blue);color:#91a7ff;background:#0a0e2a}
 
-    /* ── Buttons ──────────────────────────────── */
+    /* ── Buttons ──────────────────────────────────── */
     .btns{display:flex;flex-direction:column;gap:10px;flex:1}
     .btn{
       flex:1;border:none;border-radius:var(--r);font-weight:800;font-size:1rem;
@@ -135,7 +130,6 @@
     }
     @keyframes rot{to{transform:rotate(360deg)}}
 
-    /* ── Flash overlay ────────────────────────── */
     #flash{
       position:fixed;inset:0;background:rgba(47,158,68,.28);
       pointer-events:none;opacity:0;transition:opacity .1s;z-index:999;
@@ -147,22 +141,21 @@
 
 <div id="flash"></div>
 
-<!-- ══ SETUP SCREEN ══════════════════════════════ -->
-<div id="setupScreen">
-  <div class="setup-logo">📧</div>
-  <div class="setup-title">Gmailnator</div>
-  <div class="setup-sub">Telegram uchun vaqtinchalik<br><strong>@gmail.com</strong> manzillar</div>
-  <input class="setup-input" id="keyInput" type="password"
-    placeholder="RapidAPI kalitingizni kiriting..."
+<!-- ══ TOKEN SCREEN ═══════════════════════════════ -->
+<div id="tokenScreen">
+  <div class="t-logo">🔐</div>
+  <div class="t-title">Gmailnator</div>
+  <div class="t-sub">Kirish uchun kalit kiriting</div>
+  <input class="t-input" id="tokenInput" type="password"
+    placeholder="Kalit..."
     autocomplete="off" autocorrect="off" spellcheck="false"/>
-  <button class="setup-btn" onclick="saveKey()">Saqlash va boshlash</button>
-  <div class="setup-note">Kalit faqat qurilmangizda saqlanadi</div>
+  <button class="t-btn" id="tokenBtn" onclick="checkToken()">Kirish</button>
+  <div class="t-err" id="tokenErr"></div>
 </div>
 
-<!-- ══ MAIN SCREEN ═══════════════════════════════ -->
+<!-- ══ MAIN SCREEN ════════════════════════════════ -->
 <div id="mainScreen">
 
-  <!-- Header -->
   <div class="hdr">
     <div class="logo">Gmail<span>nator</span></div>
     <div class="hdr-right">
@@ -174,11 +167,9 @@
         Avto
         <span class="cd" id="cdTxt"></span>
       </div>
-      <button class="btn-gear" onclick="showSetup()" title="Kalitni o'zgartirish">⚙️</button>
     </div>
   </div>
 
-  <!-- Email + Code -->
   <div class="info-row">
     <div class="info-box email-box" id="emailBox" onclick="tap('email')">
       <div class="info-label">Gmail manzil</div>
@@ -192,10 +183,8 @@
     </div>
   </div>
 
-  <!-- Status -->
   <div class="status" id="st">Tayyor — Gmail yaratishdan boshlang</div>
 
-  <!-- 3 buttons -->
   <div class="btns">
     <button class="btn btn-email" id="bEmail" onclick="genEmail()">
       <span class="ico">📧</span> GMAIL OL
@@ -211,83 +200,101 @@
 </div>
 
 <script>
-const BASE = 'https://gmailnator.p.rapidapi.com/api';
+const KEY  = '03968cdfa2mshe3451f14a06bd97p1f11a0jsn63618796d7f7';
 const HOST = 'gmailnator.p.rapidapi.com';
-// Faqat @gmail.com turlari
+const BASE = 'https://' + HOST + '/api';
 const TYPES = ['public_gmail_plus','public_gmail_dot','private_gmail_plus','private_gmail_dot'];
+// SHA-256("MAQSADBEK777")
+const TOKEN_HASH = 'fd1acf8bc4d52ab76b793a66ea659a30e4299e0923dabe8021bb7a3424ef33ce';
 const AUTO_SEC = 15;
 
-let apiKey='', curEmail='', lastCode='', seenIds=new Set();
+let curEmail='', lastCode='', seenIds=new Set();
 let cdTimer=null, cdSec=0, busy=false;
 
-// SW cache'ni tozalash va o'chirish
+// SW o'chirish
 if('serviceWorker' in navigator){
-  navigator.serviceWorker.getRegistrations().then(regs => {
-    regs.forEach(r => r.unregister());
-  });
-  caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+  navigator.serviceWorker.getRegistrations().then(r=>r.forEach(x=>x.unregister()));
+  caches.keys().then(ks=>ks.forEach(k=>caches.delete(k)));
 }
 
-// ── Init ─────────────────────────────────────────
-window.onload=()=>{
-  apiKey=localStorage.getItem('gn_key')||'';
-  if(apiKey){
-    show('main');
+// ── Init ──────────────────────────────────────────
+window.onload = () => {
+  if(sessionStorage.getItem('gn_ok')==='1'){
+    showMain();
     loadSaved();
-  }else{
-    show('setup');
+  } else {
+    showToken();
   }
+  document.getElementById('tokenInput').addEventListener('keydown', e => {
+    if(e.key==='Enter') checkToken();
+  });
 };
 
-function show(screen){
-  document.getElementById('setupScreen').style.display = screen==='setup'?'flex':'none';
-  document.getElementById('mainScreen').style.display  = screen==='main' ?'flex':'none';
+function showToken(){
+  document.getElementById('tokenScreen').style.display='flex';
+  document.getElementById('mainScreen').style.display='none';
 }
 
-function saveKey(){
-  const k=document.getElementById('keyInput').value.trim();
-  if(!k){alert('Kalit kiriting!');return}
-  apiKey=k;
-  localStorage.setItem('gn_key',k);
-  document.getElementById('keyInput').value='';
-  show('main');
-  loadSaved();
+function showMain(){
+  document.getElementById('tokenScreen').style.display='none';
+  document.getElementById('mainScreen').style.display='flex';
 }
 
-function showSetup(){
-  stopAuto();
-  document.getElementById('autoChk').checked=false;
-  show('setup');
+// ── SHA-256 ──────────────────────────────────────
+async function sha256(str){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+async function checkToken(){
+  const input = document.getElementById('tokenInput').value.trim();
+  if(!input) return;
+  const btn = document.getElementById('tokenBtn');
+  btn.disabled = true;
+  btn.textContent = 'Tekshirilmoqda...';
+  document.getElementById('tokenErr').textContent = '';
+
+  const h = await sha256(input);
+  if(h === TOKEN_HASH){
+    sessionStorage.setItem('gn_ok','1');
+    document.getElementById('tokenInput').value='';
+    showMain();
+    loadSaved();
+  } else {
+    document.getElementById('tokenErr').textContent = "✗ Noto'g'ri kalit";
+    document.getElementById('tokenInput').value='';
+  }
+  btn.disabled = false;
+  btn.textContent = 'Kirish';
 }
 
 function loadSaved(){
-  const e=localStorage.getItem('gn_email');
-  const c=localStorage.getItem('gn_code');
-  if(e){curEmail=e;showEmail(e);document.getElementById('bCode').disabled=false;document.getElementById('bNew').disabled=false}
-  if(c){lastCode=c;showCode(c)}
+  const e = localStorage.getItem('gn_email');
+  const c = localStorage.getItem('gn_code');
+  if(e){ curEmail=e; showEmail(e); setEnabled(true); }
+  if(c){ lastCode=c; showCode(c); }
 }
 
 // ── API ───────────────────────────────────────────
-async function gn(method,path,body){
-  const h={'Content-Type':'application/json','x-rapidapi-host':HOST,'x-rapidapi-key':apiKey};
-  const opts={method,headers:h};
-  if(body) opts.body=JSON.stringify(body);
-  const r=await fetch(BASE+path,opts);
-  const d=await r.json();
+async function gn(method, path, body){
+  const h = {'Content-Type':'application/json','x-rapidapi-host':HOST,'x-rapidapi-key':KEY};
+  const opts = {method, headers:h};
+  if(body) opts.body = JSON.stringify(body);
+  const r = await fetch(BASE+path, opts);
+  const d = await r.json();
   if(!r.ok) throw new Error(d?.message||d?.error||'HTTP '+r.status);
   return d;
 }
 
 // ── Clipboard ─────────────────────────────────────
 async function copy(text){
-  if(navigator.clipboard&&window.isSecureContext){
-    try{await navigator.clipboard.writeText(text);return true}catch{}
+  if(navigator.clipboard && window.isSecureContext){
+    try{ await navigator.clipboard.writeText(text); return; }catch{}
   }
-  const el=document.createElement('textarea');
-  el.value=text;el.style.cssText='position:fixed;opacity:0;top:0;left:0;';
-  document.body.appendChild(el);el.focus();el.select();
-  try{return document.execCommand('copy')}catch{return false}
-  finally{document.body.removeChild(el)}
+  const el = document.createElement('textarea');
+  el.value=text; el.style.cssText='position:fixed;opacity:0;top:0;left:0;';
+  document.body.appendChild(el); el.focus(); el.select();
+  try{ document.execCommand('copy'); }finally{ document.body.removeChild(el); }
 }
 
 function flashBox(id){
@@ -312,44 +319,41 @@ function beep(){
   }catch{}
 }
 
-// ── Status ────────────────────────────────────────
 function st(msg,type=''){
   const el=document.getElementById('st');
-  el.textContent=msg;el.className='status '+type;
+  el.textContent=msg; el.className='status '+type;
 }
 
-// ── Tap copy ──────────────────────────────────────
 async function tap(type){
-  const text=type==='email'?curEmail:lastCode;
-  if(!text)return;
+  const text = type==='email' ? curEmail : lastCode;
+  if(!text) return;
   await copy(text);
   flashBox(type==='email'?'emailBox':'codeBox');
 }
 
 // ── Generate email ────────────────────────────────
 async function genEmail(){
-  if(busy)return;
-  busy=true;stopAuto();
-  seenIds.clear();lastCode='';showCode(null);
+  if(busy) return;
+  busy=true; stopAuto();
+  seenIds.clear(); lastCode=''; showCode(null);
   localStorage.removeItem('gn_code');
 
   setBtn('bEmail',true,'<span class="spin"></span>');
   st('Gmail yaratilmoqda...','info');
 
   try{
-    const d=await gn('POST','/emails/generate',{type:TYPES});
+    const d = await gn('POST','/emails/generate',{type:TYPES});
     if(d.status!=='success') throw new Error(d.message||'Xatolik');
 
-    curEmail=d.email;
-    localStorage.setItem('gn_email',curEmail);
+    curEmail = d.email;
+    localStorage.setItem('gn_email', curEmail);
     showEmail(curEmail);
     await copy(curEmail);
     flashBox('emailBox');
     st('✓ '+curEmail+' — Telegramga yopish','ok');
 
-    document.getElementById('bCode').disabled=false;
-    document.getElementById('bNew').disabled=false;
-    document.getElementById('autoChk').checked=true;
+    setEnabled(true);
+    document.getElementById('autoChk').checked = true;
     startAuto();
   }catch(e){
     st('✗ '+e.message,'err');
@@ -362,28 +366,27 @@ async function genEmail(){
 async function newEmail(){
   stopAuto();
   document.getElementById('autoChk').checked=false;
-  document.getElementById('bCode').disabled=true;
-  document.getElementById('bNew').disabled=true;
-  showEmail(null);showCode(null);
+  setEnabled(false);
+  showEmail(null); showCode(null);
   await genEmail();
 }
 
 // ── Extract code ──────────────────────────────────
 function extract(html){
-  if(!html)return null;
-  const t=html.replace(/<[^>]+>/g,' ').replace(/&nbsp;/g,' ').replace(/&#\d+;/g,' ');
+  if(!html) return null;
+  const t = html.replace(/<[^>]+>/g,' ').replace(/&nbsp;/g,' ').replace(/&#\d+;/g,' ');
   for(const p of[
     /(?:login|verif|confirm|code|kod)[^\d]*(\d{4,8})/i,
     /(\d{5,6})\s*(?:is your|bu sizning)/i,
     /\b(\d{5,6})\b/,
     /\b(\d{4})\b/,
-  ]){const m=t.match(p);if(m)return m[1]}
+  ]){ const m=t.match(p); if(m) return m[1]; }
   return null;
 }
 
 // ── Check inbox ───────────────────────────────────
 async function getCode(isAuto=false){
-  if(!curEmail||busy)return;
+  if(!curEmail || busy) return;
   busy=true;
 
   if(!isAuto){
@@ -392,83 +395,88 @@ async function getCode(isAuto=false){
   }
 
   try{
-    const res=await gn('POST','/inbox',{email:curEmail,limit:20});
-    const msgs=res.messages||[];
+    const res = await gn('POST','/inbox',{email:curEmail,limit:20});
+    const msgs = res.messages||[];
 
     if(!msgs.length){
       st('📭 Xabar hali kelmadi — kutilmoqda','');
       return;
     }
 
-    const unseen=msgs.filter(m=>!seenIds.has(m.id));
-    const target=unseen.length?unseen[0]:msgs[0];
+    const unseen = msgs.filter(m=>!seenIds.has(m.id));
+    const target = unseen.length ? unseen[0] : msgs[0];
     seenIds.add(target.id);
 
-    const full=await gn('GET','/inbox/'+encodeURIComponent(target.id));
-    const code=extract(full.content||'');
+    const full = await gn('GET','/inbox/'+encodeURIComponent(target.id));
+    const code = extract(full.content||'');
 
     if(code){
-      lastCode=code;
-      localStorage.setItem('gn_code',code);
+      lastCode = code;
+      localStorage.setItem('gn_code', code);
       showCode(code);
       await copy(code);
       flashBox('codeBox');
-      flashScreen();beep();
+      flashScreen(); beep();
       st('✓ Kod: '+code+' — Telegramga yopish','ok');
       document.getElementById('autoChk').checked=false;
       stopAuto();
-    }else{
+    } else {
       st('Xabar keldi ('+target.from+') — kod topilmadi','info');
     }
   }catch(e){
-    if(!isAuto)st('✗ '+e.message,'err');
+    if(!isAuto) st('✗ '+e.message,'err');
   }finally{
     busy=false;
-    if(!isAuto)setBtn('bCode',false,'<span class="ico">🔍</span> KOD OL');
+    if(!isAuto) setBtn('bCode',false,'<span class="ico">🔍</span> KOD OL');
   }
 }
 
 // ── UI helpers ────────────────────────────────────
 function showEmail(addr){
-  document.getElementById('eEmpty').style.display=addr?'none':'block';
+  document.getElementById('eEmpty').style.display = addr?'none':'block';
   const v=document.getElementById('eVal');
-  v.textContent=addr||'';v.style.display=addr?'block':'none';
+  v.textContent=addr||''; v.style.display=addr?'block':'none';
   document.getElementById('emailBox').classList.toggle('active',!!addr);
 }
 
 function showCode(code){
-  document.getElementById('cEmpty').style.display=code?'none':'block';
+  document.getElementById('cEmpty').style.display = code?'none':'block';
   const v=document.getElementById('cVal');
-  v.textContent=code||'';v.style.display=code?'block':'none';
+  v.textContent=code||''; v.style.display=code?'block':'none';
   document.getElementById('codeBox').classList.toggle('active',!!code);
+}
+
+function setEnabled(on){
+  document.getElementById('bCode').disabled=!on;
+  document.getElementById('bNew').disabled=!on;
 }
 
 function setBtn(id,disabled,html){
   const el=document.getElementById(id);
-  el.disabled=disabled;el.innerHTML=html;
+  el.disabled=disabled; el.innerHTML=html;
 }
 
 // ── Auto refresh ──────────────────────────────────
 function toggleAuto(){
-  document.getElementById('autoChk').checked?startAuto():stopAuto();
+  document.getElementById('autoChk').checked ? startAuto() : stopAuto();
 }
 
 function startAuto(){
-  stopAuto();cdSec=AUTO_SEC;updateCd();
+  stopAuto(); cdSec=AUTO_SEC; updateCd();
   cdTimer=setInterval(async()=>{
     cdSec--;
-    if(cdSec<=0){cdSec=AUTO_SEC;await getCode(true)}
+    if(cdSec<=0){ cdSec=AUTO_SEC; await getCode(true); }
     updateCd();
   },1000);
 }
 
 function stopAuto(){
-  if(cdTimer){clearInterval(cdTimer);cdTimer=null}
-  cdSec=0;updateCd();
+  if(cdTimer){ clearInterval(cdTimer); cdTimer=null; }
+  cdSec=0; updateCd();
 }
 
 function updateCd(){
-  document.getElementById('cdTxt').textContent=cdSec>0?cdSec+'s':'';
+  document.getElementById('cdTxt').textContent = cdSec>0 ? cdSec+'s' : '';
 }
 </script>
 </body>
