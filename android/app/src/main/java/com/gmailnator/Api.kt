@@ -31,6 +31,16 @@ object Api {
         return json
     }
 
+    fun verifyToken(token: String): Boolean {
+        val body = """{"token":"$token"}"""
+        val req = Request.Builder()
+            .url("$SERVER/verify-token")
+            .post(body.toRequestBody(JSON))
+            .build()
+        val resp = client.newCall(req).execute()
+        return resp.isSuccessful
+    }
+
     fun connect(): Boolean {
         val req = Request.Builder()
             .url("$SERVER/connect")

@@ -50,6 +50,17 @@ function auth(req, res, next) {
   next();
 }
 
+// ── Token tekshirish (app kirish kaliti) ─────────────────
+app.post('/verify-token', (req, res) => {
+  const { token } = req.body || {};
+  if (!token) return res.status(400).json({ error: 'Token yo\'q' });
+  if (token === API_KEY) {
+    res.json({ ok: true });
+  } else {
+    res.status(401).json({ error: 'Noto\'g\'ri kalit' });
+  }
+});
+
 // ── Connect (qurilmani ro'yxatdan o'tkazish) ────────────
 app.post('/connect', (req, res) => {
   const did  = req.headers['x-device-id'];

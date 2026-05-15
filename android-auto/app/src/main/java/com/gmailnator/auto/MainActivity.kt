@@ -6,7 +6,6 @@ import android.provider.Settings
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
-import java.security.MessageDigest
 import java.util.concurrent.Executors
 
 class MainActivity : AppCompatActivity() {
@@ -57,35 +56,37 @@ class MainActivity : AppCompatActivity() {
     // ── Token tekshirish ─────────────────────────────────
     private fun checkToken() {
         val input = tokenInput.text.toString().trim()
-        if (isValidToken(input)) {
-            prefs.edit().putBoolean("unlocked", true).apply()
-            tokenInput.text.clear()
-            showMain()
-        } else {
-            tokenError.text = "✗ Noto'g'ri kalit"
-            tokenError.visibility = View.VISIBLE
-            tokenInput.text.clear()
+        if (input.isEmpty()) return
+        val submitBtn = findViewById<Button>(R.id.tokenSubmit)
+        submitBtn.isEnabled = false
+        submitBtn.text = "Tekshirilmoqda..."
+        tokenError.visibility = View.GONE
+
+        executor.execute {
+            try {
+                val ok = Api.verifyToken(input)
+                runOnUiThread {
+                    if (ok) {
+                        prefs.edit().putBoolean("unlocked", true).apply()
+                        tokenInput.text.clear()
+                        showMain()
+                    } else {
+                        tokenError.text = "✗ Noto'g'ri kalit"
+                        tokenError.visibility = View.VISIBLE
+                        tokenInput.text.clear()
+                    }
+                    submitBtn.isEnabled = true
+                    submitBtn.text = "Kirish"
+                }
+            } catch (e: Exception) {
+                runOnUiThread {
+                    tokenError.text = "Server ulanmadi — server.bat yoqing"
+                    tokenError.visibility = View.VISIBLE
+                    submitBtn.isEnabled = true
+                    submitBtn.text = "Kirish"
+                }
+            }
         }
-    }
-
-    private fun isValidToken(input: String): Boolean {
-        val h = sha256(input)
-        val c = charArrayOf(
-            'e','4','b','e','5','a','2','2',
-            'c','9','7','4','3','8','3','c',
-            'b','0','b','4','3','d','b','0',
-            'f','8','0','8','9','8','a','c',
-            'c','6','1','8','7','1','8','e',
-            '7','2','4','0','c','f','2','4',
-            'c','0','9','d','6','a','2','b',
-            '5','f','7','a','d','5','0','7'
-        )
-        return h == String(c)
-    }
-
-    private fun sha256(s: String): String {
-        val d = MessageDigest.getInstance("SHA-256").digest(s.toByteArray())
-        return d.joinToString("") { "%02x".format(it) }
     }
 
     // ── UI ───────────────────────────────────────────────
