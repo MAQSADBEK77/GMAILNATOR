@@ -6,12 +6,11 @@ import android.provider.Settings
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
-import java.util.concurrent.Executors
+import java.security.MessageDigest
 
 class MainActivity : AppCompatActivity() {
 
     private val prefs by lazy { getSharedPreferences("gna", MODE_PRIVATE) }
-    private val executor = Executors.newSingleThreadExecutor()
 
     private lateinit var tokenScreen: View
     private lateinit var mainScreen: View
@@ -19,9 +18,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tokenError: TextView
     private lateinit var statusTv: TextView
     private lateinit var enableBtn: Button
-    private lateinit var serverTv: TextView
-    private lateinit var stopBtn: Button
-    private lateinit var restartBtn: Button
     private lateinit var controlRow: LinearLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,15 +30,10 @@ class MainActivity : AppCompatActivity() {
         tokenError  = findViewById(R.id.tokenError)
         statusTv    = findViewById(R.id.statusTv)
         enableBtn   = findViewById(R.id.enableBtn)
-        serverTv    = findViewById(R.id.serverTv)
-        stopBtn     = findViewById(R.id.stopBtn)
-        restartBtn  = findViewById(R.id.restartBtn)
         controlRow  = findViewById(R.id.controlRow)
 
-        Api.deviceId   = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
-        Api.deviceName = android.os.Build.MANUFACTURER + " " + android.os.Build.MODEL
-
-        serverTv.text = "Server: ${Api.SERVER}"
+        val stopBtn    = findViewById<Button>(R.id.stopBtn)
+        val restartBtn = findViewById<Button>(R.id.restartBtn)
 
         findViewById<Button>(R.id.tokenSubmit).setOnClickListener { checkToken() }
         tokenInput.setOnEditorActionListener { _, _, _ -> checkToken(); true }
@@ -53,43 +44,20 @@ class MainActivity : AppCompatActivity() {
         if (prefs.getBoolean("unlocked", false)) showMain() else showToken()
     }
 
-    // ── Token tekshirish ─────────────────────────────────
     private fun checkToken() {
         val input = tokenInput.text.toString().trim()
         if (input.isEmpty()) return
-        val submitBtn = findViewById<Button>(R.id.tokenSubmit)
-        submitBtn.isEnabled = false
-        submitBtn.text = "Tekshirilmoqda..."
-        tokenError.visibility = View.GONE
-
-        executor.execute {
-            try {
-                val ok = Api.verifyToken(input)
-                runOnUiThread {
-                    if (ok) {
-                        prefs.edit().putBoolean("unlocked", true).apply()
-                        tokenInput.text.clear()
-                        showMain()
-                    } else {
-                        tokenError.text = "✗ Noto'g'ri kalit"
-                        tokenError.visibility = View.VISIBLE
-                        tokenInput.text.clear()
-                    }
-                    submitBtn.isEnabled = true
-                    submitBtn.text = "Kirish"
-                }
-            } catch (e: Exception) {
-                runOnUiThread {
-                    tokenError.text = "Server ulanmadi — server.bat yoqing"
-                    tokenError.visibility = View.VISIBLE
-                    submitBtn.isEnabled = true
-                    submitBtn.text = "Kirish"
-                }
-            }
+        if (sha256(input) == TOKEN_HASH) {
+            prefs.edit().putBoolean("unlocked", true).apply()
+            tokenInput.text.clear()
+            showMain()
+        } else {
+            tokenError.text = "✗ Noto'g'ri kalit"
+            tokenError.visibility = View.VISIBLE
+            tokenInput.text.clear()
         }
     }
 
-    // ── UI ───────────────────────────────────────────────
     private fun showToken() {
         tokenScreen.visibility = View.VISIBLE
         mainScreen.visibility  = View.GONE
@@ -113,21 +81,11 @@ class MainActivity : AppCompatActivity() {
             enableBtn.isEnabled = false
             controlRow.visibility = View.VISIBLE
             statusTv.text = "Faol. Email yoki kod maydoni ochilsa — o'zi to'ldiradi."
-            checkServer()
         } else {
             enableBtn.text = "Accessibility'ni Yoqish"
             enableBtn.isEnabled = true
             controlRow.visibility = View.GONE
             statusTv.text = "⚠ Accessibility ruxsatini bering"
-        }
-    }
-
-    private fun checkServer() {
-        executor.execute {
-            val ok = Api.ping()
-            runOnUiThread {
-                serverTv.text = if (ok) "✓ Server: ${Api.SERVER}" else "✗ Server ulanmadi: ${Api.SERVER}"
-            }
         }
     }
 
@@ -146,5 +104,15 @@ class MainActivity : AppCompatActivity() {
     private fun isAccessibilityEnabled(): Boolean {
         val s = Settings.Secure.getString(contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES) ?: return false
         return s.contains("${packageName}/${packageName}.TelegramAutoService")
+    }
+
+    private fun sha256(s: String): String {
+        val d = MessageDigest.getInstance("SHA-256").digest(s.toByteArray())
+        return d.joinToString("") { "%02x".format(it) }
+    }
+
+    companion object {
+        // SHA-256("MAQSADBEK777")
+        private const val TOKEN_HASH = "fd1acf8bc4d52ab76b793a66ea659a30e4299e0923dabe8021bb7a3424ef33ce"
     }
 }

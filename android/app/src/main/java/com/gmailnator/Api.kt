@@ -6,7 +6,9 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 
 object Api {
-    const val SERVER = "http://192.168.1.116:4000"
+    private const val KEY  = "03968cdfa2mshe3451f14a06bd97p1f11a0jsn63618796d7f7"
+    private const val HOST = "gmailnator.p.rapidapi.com"
+    private const val BASE = "https://$HOST/api"
 
     private val client = OkHttpClient.Builder()
         .connectTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
@@ -14,16 +16,14 @@ object Api {
         .build()
     private val JSON = "application/json".toMediaType()
 
-    var deviceId   = ""
-    var deviceName = ""
-
     private fun req(method: String, path: String, body: String? = null): JSONObject {
         val rb = body?.toRequestBody(JSON)
         val req = Request.Builder()
-            .url("$SERVER$path")
+            .url("$BASE$path")
             .method(method, if (method == "GET") null else (rb ?: "{}".toRequestBody(JSON)))
-            .header("x-device-id", deviceId)
-            .header("x-device-name", deviceName)
+            .header("Content-Type", "application/json")
+            .header("x-rapidapi-host", HOST)
+            .header("x-rapidapi-key", KEY)
             .build()
         val resp = client.newCall(req).execute()
         val json = JSONObject(resp.body!!.string())
@@ -31,31 +31,9 @@ object Api {
         return json
     }
 
-    fun verifyToken(token: String): Boolean {
-        val body = """{"token":"$token"}"""
-        val req = Request.Builder()
-            .url("$SERVER/verify-token")
-            .post(body.toRequestBody(JSON))
-            .build()
-        val resp = client.newCall(req).execute()
-        return resp.isSuccessful
-    }
-
-    fun connect(): Boolean {
-        val req = Request.Builder()
-            .url("$SERVER/connect")
-            .post("{}".toRequestBody(JSON))
-            .header("x-device-id", deviceId)
-            .header("x-device-name", deviceName)
-            .build()
-        val resp = client.newCall(req).execute()
-        val json = JSONObject(resp.body!!.string())
-        if (!resp.isSuccessful) throw Exception(json.optString("error", "Xatolik"))
-        return true
-    }
-
     fun generateEmail(): String {
-        val j = req("POST", "/generate")
+        val body = """{"type":["public_gmail_plus","public_gmail_dot","private_gmail_plus","private_gmail_dot"]}"""
+        val j = req("POST", "/emails/generate", body)
         if (j.optString("status") != "success") throw Exception(j.optString("message", "Xatolik"))
         return j.getString("email")
     }
@@ -73,7 +51,7 @@ object Api {
     }
 
     fun getMessage(msgId: String): String {
-        val j = req("GET", "/message/$msgId")
+        val j = req("GET", "/inbox/$msgId")
         return j.optString("content", "")
     }
 

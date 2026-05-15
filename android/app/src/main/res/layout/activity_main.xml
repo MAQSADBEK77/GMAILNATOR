@@ -63,13 +63,7 @@
             android:layout_width="match_parent" android:layout_height="64dp"
             android:text="📧  Floating Panel Yoqish"
             android:textColor="#fff" android:textStyle="bold" android:textSize="16sp"
-            android:background="@drawable/bg_btn_primary"
-            android:layout_marginBottom="16dp"/>
-
-        <TextView android:id="@+id/statusTv"
-            android:text="Ulaning..." android:textSize="12sp"
-            android:textColor="#5c6380" android:gravity="center"
-            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+            android:background="@drawable/bg_btn_primary"/>
     </LinearLayout>
 
 </FrameLayout>

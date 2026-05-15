@@ -6,25 +6,25 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 
 object Api {
-    const val SERVER = "http://192.168.1.116:4000"
+    private const val KEY  = "03968cdfa2mshe3451f14a06bd97p1f11a0jsn63618796d7f7"
+    private const val HOST = "gmailnator.p.rapidapi.com"
+    private const val BASE = "https://$HOST/api"
 
     private val client = OkHttpClient.Builder()
-        .connectTimeout(8, java.util.concurrent.TimeUnit.SECONDS)
-        .readTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
+        .connectTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
+        .readTimeout(20, java.util.concurrent.TimeUnit.SECONDS)
         .build()
     private val JSON = "application/json".toMediaType()
-
-    var deviceId   = ""
-    var deviceName = ""
 
     private fun req(method: String, path: String, body: String? = null): JSONObject {
         val rb = body?.toRequestBody(JSON)
         val r = client.newCall(
             Request.Builder()
-                .url("$SERVER$path")
+                .url("$BASE$path")
                 .method(method, if (method == "GET") null else (rb ?: "{}".toRequestBody(JSON)))
-                .header("x-device-id", deviceId)
-                .header("x-device-name", deviceName)
+                .header("Content-Type", "application/json")
+                .header("x-rapidapi-host", HOST)
+                .header("x-rapidapi-key", KEY)
                 .build()
         ).execute()
         val j = JSONObject(r.body!!.string())
@@ -32,31 +32,9 @@ object Api {
         return j
     }
 
-    fun verifyToken(token: String): Boolean {
-        val body = """{"token":"$token"}"""
-        val req = Request.Builder()
-            .url("$SERVER/verify-token")
-            .post(body.toRequestBody(JSON))
-            .build()
-        val resp = client.newCall(req).execute()
-        return resp.isSuccessful
-    }
-
-    fun ping(): Boolean {
-        return try {
-            val r = client.newCall(
-                Request.Builder().url("$SERVER/connect")
-                    .post("{}".toRequestBody(JSON))
-                    .header("x-device-id", deviceId)
-                    .header("x-device-name", deviceName)
-                    .build()
-            ).execute()
-            r.isSuccessful
-        } catch (e: Exception) { false }
-    }
-
     fun generateEmail(): String {
-        val j = req("POST", "/generate")
+        val body = """{"type":["public_gmail_plus","public_gmail_dot","private_gmail_plus","private_gmail_dot"]}"""
+        val j = req("POST", "/emails/generate", body)
         if (j.optString("status") != "success") throw Exception(j.optString("message", "Xatolik"))
         return j.getString("email")
     }
@@ -74,12 +52,11 @@ object Api {
     }
 
     fun getMessage(id: String): String {
-        return req("GET", "/message/$id").optString("content", "")
+        return req("GET", "/inbox/$id").optString("content", "")
     }
 
     fun extractCode(html: String): String? {
         val t = html.replace(Regex("<[^>]+>"), " ").replace("&nbsp;", " ")
-        // Telegram faqat 6 xonali kod yuboradi
         for (p in listOf(
             Regex("""(?:login|verif|confirm|code|kod)[^\d]*(\d{6})""", RegexOption.IGNORE_CASE),
             Regex("""(\d{6})\s*(?:is your|bu sizning)""", RegexOption.IGNORE_CASE),

@@ -2,7 +2,6 @@ package com.gmailnator
 
 import android.app.*
 import android.content.*
-import android.provider.Settings
 import android.graphics.*
 import android.graphics.drawable.GradientDrawable
 import android.os.*
@@ -22,11 +21,6 @@ class FloatingService : Service() {
     private val executor = Executors.newSingleThreadExecutor()
     private val handler = Handler(Looper.getMainLooper())
 
-    private fun initApi() {
-        Api.deviceId   = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
-        Api.deviceName = android.os.Build.MANUFACTURER + " " + android.os.Build.MODEL
-    }
-
     private var curEmail = ""
     private var lastCode = ""
     private val seenIds = mutableSetOf<String>()
@@ -41,7 +35,6 @@ class FloatingService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        initApi()
         wm = getSystemService(WINDOW_SERVICE) as WindowManager
         startForegroundNotif()
         showBubble()

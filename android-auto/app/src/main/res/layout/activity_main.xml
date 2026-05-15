@@ -91,10 +91,6 @@
             android:layout_width="match_parent" android:layout_height="wrap_content"
             android:layout_marginBottom="10dp"/>
 
-        <TextView android:id="@+id/serverTv"
-            android:text="" android:textSize="11sp" android:textColor="#3d4a6e"
-            android:gravity="center" android:fontFamily="monospace"
-            android:layout_width="match_parent" android:layout_height="wrap_content"/>
     </LinearLayout>
 
 </FrameLayout>
