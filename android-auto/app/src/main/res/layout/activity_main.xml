@@ -28,16 +28,18 @@
     <LinearLayout android:id="@+id/controlRow"
         android:layout_width="match_parent" android:layout_height="wrap_content"
         android:orientation="horizontal" android:gravity="center"
-        android:layout_marginBottom="14dp" android:visibility="gone" android:gap="10dp">
+        android:layout_marginBottom="14dp" android:visibility="gone">
 
         <Button android:id="@+id/stopBtn"
             android:layout_width="0dp" android:layout_height="52dp" android:layout_weight="1"
+            android:layout_marginEnd="5dp"
             android:text="⏹ To'xtatish"
             android:textColor="#f87171" android:textStyle="bold" android:textSize="13sp"
             android:background="@drawable/bg_btn_secondary"/>
 
         <Button android:id="@+id/restartBtn"
             android:layout_width="0dp" android:layout_height="52dp" android:layout_weight="1"
+            android:layout_marginStart="5dp"
             android:text="▶ Qayta boshlash"
             android:textColor="#51cf66" android:textStyle="bold" android:textSize="13sp"
             android:background="@drawable/bg_btn_secondary"/>
