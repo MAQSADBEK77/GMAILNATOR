@@ -41,14 +41,19 @@ class MainActivity : AppCompatActivity() {
         stopBtn.setOnClickListener    { sendAction(TelegramAutoService.ACTION_STOP) }
         restartBtn.setOnClickListener { sendAction(TelegramAutoService.ACTION_RESTART) }
 
-        if (prefs.getBoolean("unlocked", false)) showMain() else showToken()
+        if (isSessionValid()) showMain() else showToken()
+    }
+
+    private fun isSessionValid(): Boolean {
+        val ts = prefs.getLong("ts", 0L)
+        return ts > 0 && System.currentTimeMillis() - ts < SESSION_MS
     }
 
     private fun checkToken() {
         val input = tokenInput.text.toString().trim()
         if (input.isEmpty()) return
         if (sha256(input) == TOKEN_HASH) {
-            prefs.edit().putBoolean("unlocked", true).apply()
+            prefs.edit().putLong("ts", System.currentTimeMillis()).apply()
             tokenInput.text.clear()
             showMain()
         } else {
@@ -71,7 +76,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        if (prefs.getBoolean("unlocked", false)) updateAccessibilityState()
+        if (isSessionValid()) updateAccessibilityState()
     }
 
     private fun updateAccessibilityState() {
@@ -114,5 +119,6 @@ class MainActivity : AppCompatActivity() {
     companion object {
         // SHA-256("MAQSADBEK777")
         private const val TOKEN_HASH = "fd1acf8bc4d52ab76b793a66ea659a30e4299e0923dabe8021bb7a3424ef33ce"
+        private const val SESSION_MS = 96L * 60 * 60 * 1000
     }
 }
