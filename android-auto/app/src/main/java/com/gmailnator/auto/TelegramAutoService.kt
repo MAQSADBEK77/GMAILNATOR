@@ -324,14 +324,7 @@ class TelegramAutoService : AccessibilityService() {
             if (found != null) { found.performAction(AccessibilityNodeInfo.ACTION_CLICK); return }
         }
 
-        // 2. IME action — klaviaturadagi ✓ tugmasi (Android 11+)
-        if (Build.VERSION.SDK_INT >= 30) {
-            val editNode = nodes.firstOrNull { it.isEditable && it.isFocused }
-                ?: nodes.firstOrNull { it.isEditable && it.isEnabled }
-            if (editNode?.performAction(AccessibilityNodeInfo.ACTION_IME_ENTER) == true) return
-        }
-
-        // 3. Ekranning eng pastki-o'ng burchagidagi tugma (Telegram → FAB)
+        // 2. Ekranning eng pastki-o'ng burchagidagi tugma (Telegram → FAB)
         val rect = Rect()
         val fab = nodes.filter { n ->
             n.isClickable && n.isEnabled && n.text.isNullOrEmpty()
@@ -341,7 +334,7 @@ class TelegramAutoService : AccessibilityService() {
         }
         if (fab != null) { fab.performAction(AccessibilityNodeInfo.ACTION_CLICK); return }
 
-        // 4. Har qanday className bo'yicha ImageButton/FAB
+        // 3. Har qanday className bo'yicha ImageButton/FAB
         nodes.lastOrNull { n ->
             n.isClickable && n.isEnabled &&
             n.className?.let { it.contains("ImageView") || it.contains("Button") || it.contains("FloatingAction") } == true
