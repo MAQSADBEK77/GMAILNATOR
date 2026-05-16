@@ -100,7 +100,8 @@ class TelegramAutoService : AccessibilityService() {
 
     // ── "Email not allowed" xato so'zlari ────────────────
     private val ERROR_KW = listOf(
-        "not allowed", "invalid email", "this email",
+        "not allowed", "not_allowed", "email_not_allowed", "email not allowed",
+        "invalid email", "this email", "#400",
         "не разрешен", "не допускается", "недействительн",
         "ruxsat yo'q", "noto'g'ri email"
     )
@@ -270,20 +271,18 @@ class TelegramAutoService : AccessibilityService() {
         val root = rootInActiveWindow ?: run { resetState(); return }
         val nodes = allNodes(root)
 
-        // 1. Fokusdagi tahrirlash maydoni (eng ishonchli)
+        // 1. Fokusdagi tahrirlash maydoni
         val focused = nodes.firstOrNull { it.isEditable && it.isFocused }
         if (focused != null) {
             setText(focused, code)
-            focused.performAction(AccessibilityNodeInfo.ACTION_PASTE)
         } else {
             // 2. Istalgan tahrirlash maydoni
             val editable = nodes.firstOrNull { it.isEditable && it.isEnabled }
             if (editable != null) {
                 editable.performAction(AccessibilityNodeInfo.ACTION_FOCUS)
-                setText(editable, code)
-                editable.performAction(AccessibilityNodeInfo.ACTION_PASTE)
+                handler.postDelayed({ setText(editable, code) }, 200)
             } else {
-                // 3. Fokusdagi har qanday element (OTP widget) → paste
+                // 3. OTP widget (alohida boxlar) — faqat clipboard paste
                 val anyFocused = nodes.firstOrNull { it.isFocused }
                 anyFocused?.performAction(AccessibilityNodeInfo.ACTION_PASTE)
             }
@@ -291,8 +290,8 @@ class TelegramAutoService : AccessibilityService() {
 
         handler.postDelayed({
             rootInActiveWindow?.let { clickNext(it) }
-        }, 1000)
-        handler.postDelayed({ resetState() }, 3000)
+        }, 800)
+        handler.postDelayed({ resetState() }, 4000)
     }
 
     private fun resetState() {
@@ -306,7 +305,7 @@ class TelegramAutoService : AccessibilityService() {
     private fun clickNext(root: AccessibilityNodeInfo) {
         val nodes = allNodes(root)
 
-        // 1. Matn bo'yicha
+        // 1. Matn bo'yicha (Next, Continue, OK, ...)
         for (text in NEXT_TEXTS) {
             val found = nodes.firstOrNull { n ->
                 n.isClickable && n.isEnabled &&
@@ -316,16 +315,28 @@ class TelegramAutoService : AccessibilityService() {
             if (found != null) { found.performAction(AccessibilityNodeInfo.ACTION_CLICK); return }
         }
 
-        // 2. ImageButton / FAB (Telegram'dagi yashil/ko'k o'q tugma)
-        val fab = nodes.lastOrNull { n ->
-            n.isClickable && n.isEnabled &&
-            (n.className?.let { it.contains("ImageView") || it.contains("Button") || it.contains("FloatingAction") } == true)
+        // 2. IME action — klaviaturadagi ✓ / → tugmasi (eng ishonchli)
+        val editFocused = nodes.firstOrNull { it.isEditable && it.isFocused }
+        if (editFocused != null) {
+            val b = Bundle()
+            b.putInt("action", 6) // EditorInfo.IME_ACTION_NEXT
+            if (editFocused.performAction(AccessibilityNodeInfo.ACTION_SET_SELECTION, b)) return
+            // fallback: generic IME action
+            editFocused.performAction(AccessibilityNodeInfo.ACTION_NEXT_AT_MOVEMENT_GRANULARITY)
         }
-        if (fab != null) { fab.performAction(AccessibilityNodeInfo.ACTION_CLICK); return }
 
-        // 3. Oxirgi imkon — fokusdagi maydonga IME action
-        nodes.firstOrNull { it.isEditable && it.isFocused }
-            ?.performAction(AccessibilityNodeInfo.ACTION_NEXT_AT_MOVEMENT_GRANULARITY)
+        // 3. FAB / ImageButton (Telegram'dagi ko'k o'q tugma)
+        // lastOrNull — ekranning eng pastki o'ng elementini oladi
+        val fab = nodes.filter { n ->
+            n.isClickable && n.isEnabled && !n.text.isNullOrEmpty().let { hasText ->
+                // ikonli tugmalar (matn yo'q yoki contentDesc bor)
+                n.text.isNullOrEmpty() || n.contentDescription != null
+            } && n.className?.let { cls ->
+                cls.contains("ImageView") || cls.contains("Button") ||
+                cls.contains("FloatingAction") || cls.contains("Image")
+            } == true
+        }
+        fab.lastOrNull()?.performAction(AccessibilityNodeInfo.ACTION_CLICK)
     }
 
     // ── Helpers ──────────────────────────────────────────
