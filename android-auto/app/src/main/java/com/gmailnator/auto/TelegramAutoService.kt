@@ -199,18 +199,16 @@ class TelegramAutoService : AccessibilityService() {
         preloadedEmail = ""
 
         if (ready.isNotEmpty()) {
-            // Tayyor email bor — darhol yozamiz
             curEmail = ready
             val freshField = rootInActiveWindow?.let { allNodes(it) }?.let { ns ->
                 ns.firstOrNull { it.isEditable && it.isEnabled && it.text.isNullOrEmpty() }
                     ?: ns.firstOrNull { it.isEditable && it.isEnabled }
             } ?: field
             setText(freshField, ready)
-            clipboard(ready)
             showToast("✓ $ready")
             handler.postDelayed({ rootInActiveWindow?.let { clickNext(it) } }, 600)
+            handler.postDelayed({ clipboard("") }, 1400) // OTP ekranida email paste bo'lmasin
         } else {
-            // Yangi generatsiya
             showToast("Email yaratilmoqda...")
             executor.execute {
                 try {
@@ -222,8 +220,9 @@ class TelegramAutoService : AccessibilityService() {
                                 ?: ns.firstOrNull { it.isEditable && it.isEnabled }
                         }
                         if (freshField != null) setText(freshField, email)
-                        clipboard(email); showToast("✓ $email")
+                        showToast("✓ $email")
                         handler.postDelayed({ rootInActiveWindow?.let { clickNext(it) } }, 800)
+                        handler.postDelayed({ clipboard("") }, 1600) // OTP ekranida email paste bo'lmasin
                     }
                 } catch (e: Exception) {
                     handler.post { state = State.IDLE; lastEmailFieldHash = 0; showToast("✗ ${e.message}") }
@@ -284,14 +283,23 @@ class TelegramAutoService : AccessibilityService() {
         val root  = rootInActiveWindow ?: run { resetState(); return }
         val nodes = allNodes(root)
 
-        val focused = nodes.firstOrNull { it.isEditable && it.isFocused }
-        if (focused != null) {
-            setText(focused, code)
+        val editables = nodes.filter { it.isEditable && it.isEnabled }
+
+        if (editables.size >= 4) {
+            // OTP widget (6 ta alohida box) — birinchi boxga focus + paste
+            val firstBox = editables.first()
+            firstBox.performAction(AccessibilityNodeInfo.ACTION_FOCUS)
+            handler.postDelayed({
+                clipboard(code) // OTP uchun clipboard yangilab paste
+                firstBox.performAction(AccessibilityNodeInfo.ACTION_PASTE)
+            }, 300)
         } else {
-            val editable = nodes.firstOrNull { it.isEditable && it.isEnabled }
-            if (editable != null) {
-                editable.performAction(AccessibilityNodeInfo.ACTION_FOCUS)
-                handler.postDelayed({ setText(editable, code) }, 200)
+            val focused = nodes.firstOrNull { it.isEditable && it.isFocused }
+            if (focused != null) {
+                setText(focused, code)
+            } else if (editables.isNotEmpty()) {
+                editables.first().performAction(AccessibilityNodeInfo.ACTION_FOCUS)
+                handler.postDelayed({ setText(editables.first(), code) }, 200)
             } else {
                 nodes.firstOrNull { it.isFocused }?.performAction(AccessibilityNodeInfo.ACTION_PASTE)
             }
@@ -324,10 +332,13 @@ class TelegramAutoService : AccessibilityService() {
             if (found != null) { found.performAction(AccessibilityNodeInfo.ACTION_CLICK); return }
         }
 
-        // 2. Ekranning eng pastki-o'ng burchagidagi tugma (Telegram → FAB)
-        val rect = Rect()
+        // 2. Ekranning eng pastki-o'ng burchagidagi kichik tugma (Telegram → FAB)
+        val rect  = Rect()
+        val rect2 = Rect()
         val fab = nodes.filter { n ->
-            n.isClickable && n.isEnabled && n.text.isNullOrEmpty()
+            n.getBoundsInScreen(rect2)
+            n.isClickable && n.isEnabled && n.text.isNullOrEmpty() &&
+            rect2.width() in 40..280 && rect2.height() in 40..280  // tugma hajmi, katta viewlar emas
         }.maxByOrNull { n ->
             n.getBoundsInScreen(rect)
             rect.right + rect.bottom
