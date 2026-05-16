@@ -2,6 +2,7 @@ package com.gmailnator.auto
 
 import android.accessibilityservice.AccessibilityService
 import android.content.*
+import android.graphics.Rect
 import android.os.*
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
@@ -312,6 +313,8 @@ class TelegramAutoService : AccessibilityService() {
     // ── Next tugmasi ──────────────────────────────────────
     private fun clickNext(root: AccessibilityNodeInfo) {
         val nodes = allNodes(root)
+
+        // 1. Matn bo'yicha (Next, Continue, OK ...)
         for (text in NEXT_TEXTS) {
             val found = nodes.firstOrNull { n ->
                 n.isClickable && n.isEnabled &&
@@ -320,7 +323,25 @@ class TelegramAutoService : AccessibilityService() {
             }
             if (found != null) { found.performAction(AccessibilityNodeInfo.ACTION_CLICK); return }
         }
-        // FAB / ImageButton (Telegram'dagi ko'k o'q)
+
+        // 2. IME action — klaviaturadagi ✓ tugmasi (Android 11+)
+        if (Build.VERSION.SDK_INT >= 30) {
+            val editNode = nodes.firstOrNull { it.isEditable && it.isFocused }
+                ?: nodes.firstOrNull { it.isEditable && it.isEnabled }
+            if (editNode?.performAction(AccessibilityNodeInfo.ACTION_IME_ENTER) == true) return
+        }
+
+        // 3. Ekranning eng pastki-o'ng burchagidagi tugma (Telegram → FAB)
+        val rect = Rect()
+        val fab = nodes.filter { n ->
+            n.isClickable && n.isEnabled && n.text.isNullOrEmpty()
+        }.maxByOrNull { n ->
+            n.getBoundsInScreen(rect)
+            rect.right + rect.bottom
+        }
+        if (fab != null) { fab.performAction(AccessibilityNodeInfo.ACTION_CLICK); return }
+
+        // 4. Har qanday className bo'yicha ImageButton/FAB
         nodes.lastOrNull { n ->
             n.isClickable && n.isEnabled &&
             n.className?.let { it.contains("ImageView") || it.contains("Button") || it.contains("FloatingAction") } == true
