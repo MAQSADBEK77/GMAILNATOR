@@ -73,9 +73,8 @@ class TelegramAutoService : AccessibilityService() {
         showToast("Gmailnator Auto: faol ✓")
     }
 
-    // MainActivity dan To'xtatish / Qayta boshlash
-    fun handleAction(action: String) {
-        when (action) {
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        when (intent?.action) {
             ACTION_STOP -> {
                 stopPolling()
                 resetState()
@@ -86,8 +85,10 @@ class TelegramAutoService : AccessibilityService() {
                 resetState()
                 lastEmailFieldHash = 0
                 showToast("▶ Qayta boshlandi")
+                handler.postDelayed({ checkScreen() }, 600)
             }
         }
+        return START_STICKY
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
